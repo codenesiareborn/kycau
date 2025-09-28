@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans Management - DATAUWITAN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #134e4a 0%, #059669 100%);
+            color: white;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 32px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .nav-item.active {
+            background: #d1fae5;
+            color: #134e4a;
+            border-left-color: #134e4a;
+        }
+
+        .nav-item .icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .nav-item .badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+            float: right;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #134e4a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .user-action {
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .user-action:hover {
+            color: #374151;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #374151;
+        }
+
+        .breadcrumb .separator {
+            color: #d1d5db;
+        }
+
+        .breadcrumb .current {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .add-plan-btn {
+            padding: 8px 16px;
+            background: #134e4a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-plan-btn:hover {
+            background: #0f2419;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        /* Plans Grid */
+        .plans-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .plan-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .plan-card:hover {
+            border-color: #134e4a;
+            box-shadow: 0 4px 6px -1px rgba(19, 78, 74, 0.1);
+        }
+
+        .plan-card.featured {
+            border-color: #134e4a;
+            box-shadow: 0 4px 6px -1px rgba(19, 78, 74, 0.1);
+        }
+
+        .plan-card.featured::before {
+            content: 'Most Popular';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #134e4a;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .plan-header {
+            padding: 24px;
+            text-align: center;
+            background: #f9fafb;
+        }
+
+        .plan-card.featured .plan-header {
+            padding-top: 40px;
+        }
+
+        .plan-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .plan-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 16px;
+        }
+
+        .price-currency {
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .price-amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: #134e4a;
+        }
+
+        .price-period {
+            font-size: 16px;
+            color: #6b7280;
+        }
+
+        .plan-status {
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-inactive {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .plan-content {
+            padding: 24px;
+        }
+
+        .plan-features {
+            list-style: none;
+            margin-bottom: 24px;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            color: #374151;
+            font-size: 14px;
+        }
+
+        .plan-features li .icon {
+            color: #059669;
+            font-size: 16px;
+        }
+
+        .plan-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .plan-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .plan-action-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-edit {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .btn-edit:hover {
+            background: #bfdbfe;
+        }
+
+        .btn-toggle {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .btn-toggle:hover {
+            background: #fde68a;
+        }
+
+        .btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 24px 24px 0 24px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .form-input {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #134e4a;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #134e4a;
+        }
+
+        .features-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px;
+            background: #f9fafb;
+            border-radius: 6px;
+        }
+
+        .feature-input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        .remove-feature-btn {
+            padding: 4px 8px;
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .add-feature-btn {
+            padding: 8px 12px;
+            background: #d1fae5;
+            color: #065f46;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .modal-footer {
+            padding: 0 24px 24px 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #134e4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f2419;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 64px 24px;
+            color: #6b7280;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .empty-subtitle {
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+            
+            .page-content {
+                padding: 20px;
+            }
+            
+            .plans-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .plan-actions {
+                flex-direction: column;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i>
+                DATAUWITAN
+                <span class="admin-badge">Admin</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <a href="admin-dashboard.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="admin-users.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-users"></i></span>
+                    Users
+                    <span class="badge">1,234</span>
+                </a>
+                <a href="admin-payments.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-credit-card"></i></span>
+                    Payments
+                    <span class="badge">5</span>
+                </a>
+                <a href="#" class="nav-item active">
+                    <span class="icon"><i class="fas fa-tags"></i></span>
+                    Subscription Plans
+                </a>
+               
+            </div>
+            
+        </nav>
+        
+        <div class="sidebar-user">
+            <div class="user-info">
+                <div class="user-avatar">AD</div>
+                <div class="user-details">
+                    <div class="user-name">Super Admin</div>
+                    <div class="user-role">Administrator</div>
+                    <div class="user-action" onclick="logout()">Sign out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="breadcrumb">
+                    <a href="admin-dashboard.html">Dashboard</a>
+                    <span class="separator">/</span>
+                    <span class="current">Subscription Plans</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="add-plan-btn" onclick="openAddPlanModal()">
+                    <i class="fas fa-plus"></i>
+                    Add New Plan
+                </button>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Subscription Plans Management</h1>
+                <p class="page-subtitle">Kelola paket subscription, harga, dan fitur untuk platform DATAUWITAN</p>
+            </div>
+            
+            <!-- Plans Grid -->
+            <div class="plans-grid" id="plansGrid">
+                <!-- Free Plan -->
+                <div class="plan-card" data-plan-id="1">
+                    <div class="plan-header">
+                        <h3 class="plan-name">Free</h3>
+                        <p class="plan-description">Perfect untuk pemula yang ingin mencoba platform</p>
+                        <div class="plan-price">
+                            <span class="price-currency">Rp</span>
+                            <span class="price-amount">0</span>
+                            <span class="price-period">/bulan</span>
+                        </div>
+                        <div class="plan-status status-active">Active</div>
+                    </div>
+                    <div class="plan-content">
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check icon"></i> 5 File Uploads per bulan</li>
+                            <li><i class="fas fa-check icon"></i> Basic Dashboard</li>
+                            <li><i class="fas fa-check icon"></i> Email Support</li>
+                            <li><i class="fas fa-times icon" style="color: #ef4444;"></i> Advanced Analytics</li>
+                            <li><i class="fas fa-times icon" style="color: #ef4444;"></i> Custom Reports</li>
+                        </ul>
+                        <div class="plan-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">234</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">19%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                            </div>
+                        </div>
+                        <div class="plan-actions">
+                            <button class="plan-action-btn btn-edit" onclick="editPlan(1)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="plan-action-btn btn-toggle" onclick="togglePlan(1)">
+                                <i class="fas fa-pause"></i> Disable
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pro Plan (Featured) -->
+                <div class="plan-card featured" data-plan-id="2">
+                    <div class="plan-header">
+                        <h3 class="plan-name">Pro</h3>
+                        <p class="plan-description">Untuk bisnis yang membutuhkan analisis mendalam</p>
+                        <div class="plan-price">
+                            <span class="price-currency">Rp</span>
+                            <span class="price-amount">299,000</span>
+                            <span class="price-period">/bulan</span>
+                        </div>
+                        <div class="plan-status status-active">Active</div>
+                    </div>
+                    <div class="plan-content">
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check icon"></i> Unlimited File Uploads</li>
+                            <li><i class="fas fa-check icon"></i> Advanced Dashboard</li>
+                            <li><i class="fas fa-check icon"></i> Priority Support</li>
+                            <li><i class="fas fa-check icon"></i> Advanced Analytics</li>
+                            <li><i class="fas fa-check icon"></i> Custom Reports</li>
+                            <li><i class="fas fa-check icon"></i> Data Export</li>
+                        </ul>
+                        <div class="plan-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">567</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">34%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                            </div>
+                        </div>
+                        <div class="plan-actions">
+                            <button class="plan-action-btn btn-edit" onclick="editPlan(2)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="plan-action-btn btn-toggle" onclick="togglePlan(2)">
+                                <i class="fas fa-pause"></i> Disable
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Enterprise Plan -->
+                <div class="plan-card" data-plan-id="3">
+                    <div class="plan-header">
+                        <h3 class="plan-name">Enterprise</h3>
+                        <p class="plan-description">Solusi lengkap untuk perusahaan besar</p>
+                        <div class="plan-price">
+                            <span class="price-currency">Rp</span>
+                            <span class="price-amount">999,000</span>
+                            <span class="price-period">/bulan</span>
+                        </div>
+                        <div class="plan-status status-active">Active</div>
+                    </div>
+                    <div class="plan-content">
+                        <ul class="plan-features">
+                            <li><i class="fas fa-check icon"></i> Unlimited Everything</li>
+                            <li><i class="fas fa-check icon"></i> Enterprise Dashboard</li>
+                            <li><i class="fas fa-check icon"></i> 24/7 Dedicated Support</li>
+                            <li><i class="fas fa-check icon"></i> AI-Powered Analytics</li>
+                            <li><i class="fas fa-check icon"></i> White-label Solution</li>
+                            <li><i class="fas fa-check icon"></i> API Access</li>
+                            <li><i class="fas fa-check icon"></i> Custom Integrations</li>
+                        </ul>
+                        <div class="plan-stats">
+                            <div class="stat-item">
+                                <div class="stat-value">89</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">12%</div>
+                                <div class="stat-label">Conversion Rate</div>
+                            </div>
+                        </div>
+                        <div class="plan-actions">
+                            <button class="plan-action-btn btn-edit" onclick="editPlan(3)">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="plan-action-btn btn-toggle" onclick="togglePlan(3)">
+                                <i class="fas fa-pause"></i> Disable
+                            </button>
+                            <button class="plan-action-btn btn-delete" onclick="deletePlan(3)">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Plan Modal -->
+    <div class="modal" id="planModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New Plan</h3>
+            </div>
+            <div class="modal-body">
+                <form id="planForm">
+                    <input type="hidden" id="planId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Plan Name *</label>
+                            <input type="text" class="form-input" id="planName" placeholder="e.g., Starter, Professional" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Monthly Price (IDR) *</label>
+                            <input type="number" class="form-input" id="planPrice" placeholder="299000" min="0" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Plan Description</label>
+                            <textarea class="form-input form-textarea" id="planDescription" placeholder="Describe what this plan offers..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="isFeatured">
+                                <label class="form-label">Mark as Featured Plan</label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Plan Features</label>
+                            <div class="features-list" id="featuresList">
+                                <div class="feature-item">
+                                    <input type="text" class="feature-input" placeholder="e.g., Unlimited file uploads" value="">
+                                    <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <button type="button" class="add-feature-btn" onclick="addFeature()">
+                                <i class="fas fa-plus"></i> Add Feature
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePlanModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary" onclick="savePlan()">
+                    <i class="fas fa-save"></i>
+                    Save Plan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let plans = [
+            {
+                id: 1,
+                name: 'Free',
+                price: 0,
+                description: 'Perfect untuk pemula yang ingin mencoba platform',
+                features: ['5 File Uploads per bulan', 'Basic Dashboard', 'Email Support'],
+                isFeatured: false,
+                isActive: true,
+                activeUsers: 234,
+                conversionRate: 19
+            },
+            {
+                id: 2,
+                name: 'Pro',
+                price: 299000,
+                description: 'Untuk bisnis yang membutuhkan analisis mendalam',
+                features: ['Unlimited File Uploads', 'Advanced Dashboard', 'Priority Support', 'Advanced Analytics', 'Custom Reports', 'Data Export'],
+                isFeatured: true,
+                isActive: true,
+                activeUsers: 567,
+                conversionRate: 34
+            },
+            {
+                id: 3,
+                name: 'Enterprise',
+                price: 999000,
+                description: 'Solusi lengkap untuk perusahaan besar',
+                features: ['Unlimited Everything', 'Enterprise Dashboard', '24/7 Dedicated Support', 'AI-Powered Analytics', 'White-label Solution', 'API Access', 'Custom Integrations'],
+                isFeatured: false,
+                isActive: true,
+                activeUsers: 89,
+                conversionRate: 12
+            }
+        ];
+        
+        let nextPlanId = 4;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mobile menu toggle
+            if (window.innerWidth <= 1024) {
+                createMobileMenu();
+            }
+            
+            // Close modal when clicking outside
+            document.getElementById('planModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closePlanModal();
+                }
+            });
+        });
+        
+        // Modal Functions
+        function openAddPlanModal() {
+            document.getElementById('modalTitle').textContent = 'Add New Plan';
+            document.getElementById('planForm').reset();
+            document.getElementById('planId').value = '';
+            document.getElementById('isActive').checked = true;
+            
+            // Reset features list to one empty feature
+            const featuresList = document.getElementById('featuresList');
+            featuresList.innerHTML = `
+                <div class="feature-item">
+                    <input type="text" class="feature-input" placeholder="e.g., Unlimited file uploads" value="">
+                    <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('planModal').classList.add('show');
+        }
+        
+        function closePlanModal() {
+            document.getElementById('planModal').classList.remove('show');
+        }
+        
+        function editPlan(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            document.getElementById('modalTitle').textContent = 'Edit Plan';
+            document.getElementById('planId').value = plan.id;
+            document.getElementById('planName').value = plan.name;
+            document.getElementById('planPrice').value = plan.price;
+            document.getElementById('planDescription').value = plan.description;
+            document.getElementById('isFeatured').checked = plan.isFeatured;
+            document.getElementById('isActive').checked = plan.isActive;
+            
+            // Populate features
+            const featuresList = document.getElementById('featuresList');
+            featuresList.innerHTML = '';
+            
+            plan.features.forEach(feature => {
+                const featureDiv = document.createElement('div');
+                featureDiv.className = 'feature-item';
+                featureDiv.innerHTML = `
+                    <input type="text" class="feature-input" value="${feature}">
+                    <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                featuresList.appendChild(featureDiv);
+            });
+            
+            // Add one empty feature for editing
+            addFeature();
+            
+            document.getElementById('planModal').classList.add('show');
+        }
+        
+        function addFeature() {
+            const featuresList = document.getElementById('featuresList');
+            const featureDiv = document.createElement('div');
+            featureDiv.className = 'feature-item';
+            featureDiv.innerHTML = `
+                <input type="text" class="feature-input" placeholder="e.g., Unlimited file uploads">
+                <button type="button" class="remove-feature-btn" onclick="removeFeature(this)">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            featuresList.appendChild(featureDiv);
+        }
+        
+        function removeFeature(button) {
+            const featuresList = document.getElementById('featuresList');
+            if (featuresList.children.length > 1) {
+                button.parentElement.remove();
+            } else {
+                showActionToast('At least one feature must remain');
+            }
+        }
+        
+        function savePlan() {
+            const planId = document.getElementById('planId').value;
+            const planName = document.getElementById('planName').value.trim();
+            const planPrice = parseInt(document.getElementById('planPrice').value);
+            const planDescription = document.getElementById('planDescription').value.trim();
+            const isFeatured = document.getElementById('isFeatured').checked;
+            const isActive = document.getElementById('isActive').checked;
+            
+            // Validation
+            if (!planName) {
+                showActionToast('Plan name is required');
+                return;
+            }
+            
+            if (isNaN(planPrice) || planPrice < 0) {
+                showActionToast('Please enter a valid price');
+                return;
+            }
+            
+            // Get features
+            const featureInputs = document.querySelectorAll('#featuresList .feature-input');
+            const features = [];
+            featureInputs.forEach(input => {
+                if (input.value.trim()) {
+                    features.push(input.value.trim());
+                }
+            });
+            
+            if (features.length === 0) {
+                showActionToast('At least one feature is required');
+                return;
+            }
+            
+            // Check if editing existing plan or creating new one
+            if (planId) {
+                // Edit existing plan
+                const planIndex = plans.findIndex(p => p.id === parseInt(planId));
+                if (planIndex !== -1) {
+                    // If making this plan featured, remove featured from others
+                    if (isFeatured) {
+                        plans.forEach(p => p.isFeatured = false);
+                    }
+                    
+                    plans[planIndex] = {
+                        ...plans[planIndex],
+                        name: planName,
+                        price: planPrice,
+                        description: planDescription,
+                        features: features,
+                        isFeatured: isFeatured,
+                        isActive: isActive
+                    };
+                    
+                    showActionToast('Plan updated successfully');
+                }
+            } else {
+                // Create new plan
+                if (isFeatured) {
+                    plans.forEach(p => p.isFeatured = false);
+                }
+                
+                const newPlan = {
+                    id: nextPlanId++,
+                    name: planName,
+                    price: planPrice,
+                    description: planDescription,
+                    features: features,
+                    isFeatured: isFeatured,
+                    isActive: isActive,
+                    activeUsers: 0,
+                    conversionRate: 0
+                };
+                
+                plans.push(newPlan);
+                showActionToast('Plan created successfully');
+            }
+            
+            // Refresh plans display
+            renderPlans();
+            closePlanModal();
+        }
+        
+        function togglePlan(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            plan.isActive = !plan.isActive;
+            
+            const action = plan.isActive ? 'activated' : 'deactivated';
+            showActionToast(`Plan "${plan.name}" ${action} successfully`);
+            
+            renderPlans();
+        }
+        
+        function deletePlan(planId) {
+            const plan = plans.find(p => p.id === planId);
+            if (!plan) return;
+            
+            // Don't allow deleting Free plan
+            if (plan.name.toLowerCase() === 'free') {
+                showActionToast('Cannot delete the Free plan');
+                return;
+            }
+            
+            if (confirm(`Are you sure you want to delete the "${plan.name}" plan? This action cannot be undone.`)) {
+                const planIndex = plans.findIndex(p => p.id === planId);
+                if (planIndex !== -1) {
+                    plans.splice(planIndex, 1);
+                    showActionToast(`Plan "${plan.name}" deleted successfully`);
+                    renderPlans();
+                }
+            }
+        }
+        
+        function renderPlans() {
+            const plansGrid = document.getElementById('plansGrid');
+            plansGrid.innerHTML = '';
+            
+            if (plans.length === 0) {
+                plansGrid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h3 class="empty-title">No Subscription Plans</h3>
+                        <p class="empty-subtitle">Create your first subscription plan to get started</p>
+                        <button class="btn btn-primary" onclick="openAddPlanModal()">
+                            <i class="fas fa-plus"></i>
+                            Create First Plan
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            plans.forEach(plan => {
+                const planCard = createPlanCard(plan);
+                plansGrid.appendChild(planCard);
+            });
+        }
+        
+        function createPlanCard(plan) {
+            const planCard = document.createElement('div');
+            planCard.className = `plan-card ${plan.isFeatured ? 'featured' : ''}`;
+            planCard.setAttribute('data-plan-id', plan.id);
+            
+            const featuresHTML = plan.features.map(feature => 
+                `<li><i class="fas fa-check icon"></i> ${feature}</li>`
+            ).join('');
+            
+            const deleteButton = plan.name.toLowerCase() !== 'free' ? 
+                `<button class="plan-action-btn btn-delete" onclick="deletePlan(${plan.id})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>` : '';
+            
+            planCard.innerHTML = `
+                ${plan.isFeatured ? '' : ''}
+                <div class="plan-header">
+                    <h3 class="plan-name">${plan.name}</h3>
+                    <p class="plan-description">${plan.description}</p>
+                    <div class="plan-price">
+                        <span class="price-currency">Rp</span>
+                        <span class="price-amount">${plan.price.toLocaleString()}</span>
+                        <span class="price-period">/bulan</span>
+                    </div>
+                    <div class="plan-status ${plan.isActive ? 'status-active' : 'status-inactive'}">
+                        ${plan.isActive ? 'Active' : 'Inactive'}
+                    </div>
+                </div>
+                <div class="plan-content">
+                    <ul class="plan-features">
+                        ${featuresHTML}
+                    </ul>
+                    <div class="plan-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${plan.activeUsers}</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${plan.conversionRate}%</div>
+                            <div class="stat-label">Conversion Rate</div>
+                        </div>
+                    </div>
+                    <div class="plan-actions">
+                        <button class="plan-action-btn btn-edit" onclick="editPlan(${plan.id})">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="plan-action-btn btn-toggle" onclick="togglePlan(${plan.id})">
+                            <i class="fas fa-${plan.isActive ? 'pause' : 'play'}"></i> 
+                            ${plan.isActive ? 'Disable' : 'Enable'}
+                        </button>
+                        ${deleteButton}
+                    </div>
+                </div>
+            `;
+            
+            return planCard;
+        }
+        
+        // Show action toast
+        function showActionToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-size: 14px;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            toast.innerHTML = `
+                <i class="fas fa-check"></i>
+                ${message}
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Create mobile menu
+        function createMobileMenu() {
+            const menuToggle = document.createElement('button');
+            menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            menuToggle.style.cssText = `
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1001;
+                background: #134e4a;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s ease;
+            `;
+            
+            document.body.appendChild(menuToggle);
+            
+            menuToggle.addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+            
+            // Close sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        }
+        
+        // Logout function
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin keluar dari admin dashboard?')) {
+                localStorage.removeItem('adminRememberMe');
+                localStorage.removeItem('adminUsername');
+                window.location.href = 'admin-login.html';
+            }
+        }
+    </script>
+</body>
+</html>

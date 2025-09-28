@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilih Paket Berlangganan - DATAUWITAN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: #134e4a;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #6b7280;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .user-details {
+            text-align: right;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: #ef4444;
+            font-weight: 500;
+        }
+
+        /* Main Content */
+        .main-content {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .main-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #134e4a, #059669);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .main-subtitle {
+            font-size: 20px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .main-description {
+            font-size: 16px;
+            color: #9ca3af;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Features Banner */
+        .features-banner {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 48px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .banner-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 24px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            border-radius: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+        .feature-icon {
+            font-size: 20px;
+            background: #134e4a;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Pricing Cards */
+        .pricing-section {
+            margin-bottom: 48px;
+        }
+
+        .pricing-title {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .pricing-subtitle {
+            font-size: 16px;
+            color: #6b7280;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .pricing-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 24px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .pricing-card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pricing-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        .pricing-card.popular {
+            border-color: #134e4a;
+            background: linear-gradient(135deg, #f0fdfa 0%, #ecfdf5 100%);
+        }
+
+        .popular-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: #134e4a;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .card-duration {
+            font-size: 14px;
+            font-weight: 600;
+            color: #134e4a;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-price {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .price-main {
+            font-size: 36px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+
+        .price-period {
+            font-size: 14px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .price-total {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+
+        .discount-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .card-description {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .card-features {
+            margin-bottom: 32px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .feature-check {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .select-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: #134e4a;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .select-btn:hover {
+            background: #0f2419;
+            transform: translateY(-1px);
+        }
+
+        .select-btn:active {
+            transform: translateY(0);
+        }
+
+        .select-btn.secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .select-btn.secondary:hover {
+            background: #e5e7eb;
+            border-color: #9ca3af;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
+        }
+
+        .faq-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1f2937;
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+        }
+
+        .faq-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s ease;
+        }
+
+        .faq-item:hover {
+            border-color: #134e4a;
+            background: #f8fafc;
+        }
+
+        .faq-question {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .faq-answer {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        /* Support Section */
+        .support-section {
+            text-align: center;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .support-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .support-desc {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        .support-btn {
+            background: #134e4a;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .support-btn:hover {
+            background: #0f2419;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 16px;
+            }
+
+            .header {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .main-title {
+                font-size: 32px;
+            }
+
+            .main-subtitle {
+                font-size: 18px;
+            }
+
+            .pricing-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .faq-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="logo-text">DATAUWITAN</div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar"><i class="fas fa-user"></i></div>
+                <div class="user-details">
+                    <div class="user-name">John Doe</div>
+                    <div class="user-status">Belum Berlangganan</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <h1 class="main-title">Pilih Paket Berlangganan</h1>
+            <p class="main-subtitle">Akses penuh ke Dashboard Visualisasi Data Penjualan</p>
+            <p class="main-description">
+                Tingkatkan bisnis Anda dengan insight data yang mendalam. Pilih paket yang sesuai dengan kebutuhan dan skala bisnis Anda.
+            </p>
+        </div>
+
+        <!-- Features Banner -->
+        <div class="features-banner">
+            <h2 class="banner-title">Fitur Lengkap untuk Analisis Data Penjualan</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Dashboard Interaktif</div>
+                        <div class="feature-desc">Visualisasi data real-time dengan chart yang mudah dipahami</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Analisis Trend</div>
+                        <div class="feature-desc">Prediksi dan analisis tren penjualan masa depan</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Mobile Responsive</div>
+                        <div class="feature-desc">Akses data kapan saja dari perangkat mobile</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Keamanan Data</div>
+                        <div class="feature-desc">Enkripsi tingkat enterprise untuk keamanan data</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Report Otomatis</div>
+                        <div class="feature-desc">Laporan otomatis harian, mingguan, dan bulanan</div>
+                    </div>
+                </div>
+                <div class="feature-item">
+                    <div class="feature-icon"><i class="fas fa-headset"></i></div>
+                    <div class="feature-text">
+                        <div class="feature-title">Support 24/7</div>
+                        <div class="feature-desc">Tim support siap membantu kapan saja</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing Section -->
+        <div class="pricing-section">
+            <h2 class="pricing-title">Paket Berlangganan</h2>
+            <p class="pricing-subtitle">Pilih durasi berlangganan yang sesuai dengan kebutuhan bisnis Anda</p>
+            
+            <div class="pricing-cards">
+                <!-- 1 Month Plan -->
+                <div class="pricing-card">
+                    <div class="card-duration">1 Bulan</div>
+                    <div class="card-price">
+                        <span class="price-main">Rp 299K</span>
+                        <span class="price-period">/bulan</span>
+                    </div>
+                    <div class="price-total">Total: Rp 299,000</div>
+                    
+                    <p class="card-description">
+                        Cocok untuk bisnis yang ingin mencoba fitur-fitur kami terlebih dahulu.
+                    </p>
+                    
+                    <div class="card-features">
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Dashboard lengkap & real-time
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Analisis data penjualan
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Export data (PDF, Excel)
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Support email
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Update fitur terbaru
+                        </div>
+                    </div>
+                    
+                    <button class="select-btn secondary" onclick="selectPlan('1month', 299000)">
+                        <i class="fas fa-calendar-alt"></i>
+                        Pilih Paket 1 Bulan
+                    </button>
+                </div>
+
+                <!-- 6 Months Plan -->
+                <div class="pricing-card popular">
+                    <div class="popular-badge">Populer</div>
+                    <div class="card-duration">6 Bulan</div>
+                    <div class="card-price">
+                        <span class="price-main">Rp 249K</span>
+                        <span class="price-period">/bulan</span>
+                    </div>
+                    <div class="price-total">Total: Rp 1,494,000 <s style="color: #9ca3af;">Rp 1,794,000</s></div>
+                    <div class="discount-badge">Hemat 17% (Rp 300K)</div>
+                    
+                    <p class="card-description">
+                        Paket terpopuler untuk bisnis yang serius mengoptimalkan penjualan mereka.
+                    </p>
+                    
+                    <div class="card-features">
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Semua fitur paket 1 bulan
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Advanced analytics & forecasting
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Custom dashboard themes
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Priority support (chat)
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            API access (coming soon)
+                        </div>
+                    </div>
+                    
+                    <button class="select-btn" onclick="selectPlan('6months', 1494000)">
+                        <i class="fas fa-star"></i>
+                        Pilih Paket 6 Bulan
+                    </button>
+                </div>
+
+                <!-- 12 Months Plan -->
+                <div class="pricing-card">
+                    <div class="card-duration">12 Bulan</div>
+                    <div class="card-price">
+                        <span class="price-main">Rp 199K</span>
+                        <span class="price-period">/bulan</span>
+                    </div>
+                    <div class="price-total">Total: Rp 2,388,000 <s style="color: #9ca3af;">Rp 3,588,000</s></div>
+                    <div class="discount-badge">Hemat 33% (Rp 1.2JT)</div>
+                    
+                    <p class="card-description">
+                        Investasi terbaik untuk bisnis yang ingin berkembang pesat dalam jangka panjang.
+                    </p>
+                    
+                    <div class="card-features">
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Semua fitur paket 6 bulan
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            White-label dashboard
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Dedicated account manager
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            24/7 phone support
+                        </div>
+                        <div class="feature">
+                            <span class="feature-check"><i class="fas fa-check"></i></span>
+                            Free consultation session
+                        </div>
+                    </div>
+                    
+                    <button class="select-btn" onclick="selectPlan('12months', 2388000)">
+                        <i class="fas fa-crown"></i>
+                        Pilih Paket 12 Bulan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2 class="faq-title">Pertanyaan Umum</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-question">Apakah bisa cancel berlangganan?</div>
+                    <div class="faq-answer">Ya, Anda dapat membatalkan berlangganan kapan saja. Akses akan tetap aktif hingga akhir periode yang sudah dibayar.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Metode pembayaran apa saja yang tersedia?</div>
+                    <div class="faq-answer">Kami menerima pembayaran melalui kartu kredit, transfer bank, dan e-wallet seperti GoPay, OVO, dan DANA.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Apakah data saya aman?</div>
+                    <div class="faq-answer">Absolutely! Kami menggunakan enkripsi tingkat enterprise dan server yang aman untuk melindungi data Anda.</div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-question">Bisakah upgrade atau downgrade paket?</div>
+                    <div class="faq-answer">Ya, Anda dapat mengubah paket berlangganan kapan saja. Perbedaan harga akan disesuaikan secara proporsional.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <h3 class="support-title">Butuh Bantuan?</h3>
+            <p class="support-desc">Tim customer success kami siap membantu Anda memilih paket yang tepat</p>
+            <a href="#" class="support-btn" onclick="contactSupport()">
+                <i class="fas fa-comments"></i>
+                Hubungi Customer Support
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Store user data (in real app, this would come from authentication)
+        const userData = {
+            name: 'John Doe',
+            email: 'john.doe@example.com',
+            isSubscribed: false
+        };
+
+        function selectPlan(planType, amount) {
+            // Store selected plan data
+            const planData = {
+                type: planType,
+                amount: amount,
+                selectedAt: new Date().toISOString()
+            };
+            
+            // Save to localStorage for the payment page
+            localStorage.setItem('selectedPlan', JSON.stringify(planData));
+            localStorage.setItem('userEmail', userData.email);
+            
+            // Redirect to payment page
+            window.location.href = 'payment-process.html';
+        }
+
+        function contactSupport() {
+            alert('Menghubungi customer support...\n\nEmail: support@datauwitan.com\nPhone: +62 21 1234 5678\nChat: Akan segera tersedia');
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if user is coming from registration
+            const fromRegistration = localStorage.getItem('fromRegistration');
+            if (fromRegistration) {
+                localStorage.removeItem('fromRegistration');
+                
+                // Show welcome message
+                setTimeout(() => {
+                    alert('Selamat datang di DATAUWITAN! 🎉\n\nAkun Anda berhasil dibuat. Silakan pilih paket berlangganan untuk mengakses dashboard lengkap.');
+                }, 500);
+            }
+
+            // Add animation to cards
+            const cards = document.querySelectorAll('.pricing-card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Add hover effects to feature items
+            const featureItems = document.querySelectorAll('.feature-item');
+            featureItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+        });
+
+        // Prevent access to protected pages
+        function checkSubscription() {
+            if (!userData.isSubscribed) {
+                alert('Akses Ditolak!\n\nAnda belum berlangganan. Silakan pilih paket berlangganan untuk mengakses fitur ini.');
+                return false;
+            }
+            return true;
+        }
+
+        // Demo function to simulate navigation attempts
+        function tryAccessDashboard() {
+            if (!checkSubscription()) {
+                return;
+            }
+            window.location.href = 'dashboard.html';
+        }
+
+        function tryAccessHome() {
+            if (!checkSubscription()) {
+                return;
+            }
+            window.location.href = 'home.html';
+        }
+    </script>
+</body>
+</html>

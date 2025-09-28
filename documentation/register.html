@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Dashboard Penjualan (White Theme)</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: auto;
+        }
+
+        /* Full Screen Map Background */
+        .map-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Light Overlay for Better Contrast */
+        .map-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(248, 250, 252, 0.2) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Logo in Top Left */
+        .logo {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #134e4a, #0f3730);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 6px 24px rgba(19, 78, 74, 0.3);
+        }
+
+        .logo-text {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.8);
+            letter-spacing: 0.5px;
+        }
+
+        /* Back to Login Link */
+        .back-to-login {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            z-index: 10;
+            color: #134e4a;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(19, 78, 74, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-login:hover {
+            background: rgba(255, 255, 255, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(19, 78, 74, 0.2);
+        }
+
+        /* Compact Floating Register Card */
+        .register-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            max-width: 90vw;
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 5;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.9) 100%);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 
+                0 16px 48px rgba(0, 0, 0, 0.25),
+                0 6px 24px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: cardFloat 6s ease-in-out infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -52%) scale(1.02); }
+        }
+
+        .form-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .form-header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 6px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-header p {
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .form-group {
+            flex: 1;
+            margin-bottom: 12px;
+        }
+
+        .form-group.full-width {
+            flex: none;
+            width: 100%;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 2px solid rgba(209, 213, 219, 0.6);
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+            color: #1f2937;
+            backdrop-filter: blur(10px);
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+            max-height: 90px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #134e4a;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .form-group input.error,
+        .form-group select.error,
+        .form-group textarea.error {
+            border-color: #ef4444;
+            background: rgba(254, 242, 242, 0.9);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: #9ca3af;
+            font-size: 13px;
+        }
+
+        .form-group select {
+            cursor: pointer;
+        }
+
+        .form-group select option {
+            background: white;
+            color: #1f2937;
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 11px;
+            margin-top: 4px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .register-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #134e4a 0%, #0f3730 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(19, 78, 74, 0.3);
+            margin-bottom: 16px;
+            margin-top: 6px;
+        }
+
+        .register-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .register-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(19, 78, 74, 0.4);
+        }
+
+        .register-btn:hover::before {
+            left: 100%;
+        }
+
+        .register-btn:active {
+            transform: translateY(0);
+        }
+
+        .register-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loading::after {
+            content: '';
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            border: 1px solid #a7f3d0;
+            display: none;
+            font-size: 12px;
+            font-weight: 600;
+            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.2);
+            text-align: center;
+        }
+
+        .login-link {
+            text-align: center;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .login-link a {
+            color: #134e4a;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .login-link a:hover {
+            color: #0f3730;
+        }
+
+        /* Compact Map Legend - Top Right with White Theme - REMOVED */
+        /* Scanning Line Animation - Darker for White Background */
+        .satellite-scan-line {
+            position: fixed;
+            top: 0;
+            left: -100%;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, #3b82f6, #60a5fa, #3b82f6, transparent);
+            z-index: 3;
+            animation: satellite-scan 10s linear infinite;
+            box-shadow: 0 0 30px #3b82f6, 0 0 60px #3b82f6;
+            opacity: 0.7;
+        }
+
+        @keyframes satellite-scan {
+            0% { left: -100%; opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { left: 100%; opacity: 0; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .logo {
+                top: 20px;
+                left: 20px;
+            }
+
+            .back-to-login {
+                top: 20px;
+                right: 20px;
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            .logo-icon {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+
+            .logo-text {
+                font-size: 18px;
+            }
+
+            .register-card {
+                width: 340px;
+                padding: 20px 18px;
+                border-radius: 14px;
+                max-height: 90vh;
+            }
+
+            .form-header h1 {
+                font-size: 18px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .map-legend {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .register-card {
+                width: 300px;
+                padding: 18px 16px;
+                max-height: 95vh;
+            }
+
+            .form-header h1 {
+                font-size: 16px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+
+            .register-btn {
+                padding: 9px;
+                font-size: 13px;
+            }
+
+            .map-legend {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Full Screen Map Background -->
+    <div class="map-background">
+        <div id="map"></div>
+    </div>
+
+    <!-- Light Overlay -->
+    <div class="map-overlay"></div>
+
+    <!-- Satellite Scanning Line -->
+    <div class="satellite-scan-line"></div>
+
+    <!-- Logo -->
+    <div class="logo">
+        <div class="logo-icon">D</div>
+        <div class="logo-text">DATAUWITAN</div>
+    </div>
+
+    <!-- Back to Login Link -->
+    <a href="index.html" class="back-to-login">← Kembali ke Login</a>
+
+    <!-- Compact Map Legend -->
+    <div class="map-legend">
+        <div class="legend-title">Satellite Intelligence</div>
+        <div class="legend-subtitle">Customer Distribution Analysis</div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-dot yellow"></div>
+                <span>< Rp1 Juta</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot orange"></div>
+                <span>Rp1-5 Juta</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-dot green"></div>
+                <span>> Rp5 Juta</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Card -->
+    <div class="register-card">
+        <div class="form-header">
+            <h1>Create Account</h1>
+            <p>Join our business intelligence platform</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            Akun berhasil dibuat! Mengalihkan ke halaman paket...
+        </div>
+
+        <form id="registerForm">
+            <!-- Row 1: Nama Lengkap & Nama Perusahaan -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fullName">Nama Lengkap</label>
+                    <input type="text" id="fullName" name="fullName" placeholder="Masukkan nama lengkap" required>
+                    <div class="error-message" id="fullNameError">Nama lengkap wajib diisi</div>
+                </div>
+                <div class="form-group">
+                    <label for="companyName">Nama Perusahaan</label>
+                    <input type="text" id="companyName" name="companyName" placeholder="Masukkan nama perusahaan" required>
+                    <div class="error-message" id="companyNameError">Nama perusahaan wajib diisi</div>
+                </div>
+            </div>
+
+            <!-- Row 2: Bidang Usaha & Email -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="businessField">Bidang Usaha</label>
+                    <select id="businessField" name="businessField" required>
+                        <option value="">Pilih bidang usaha</option>
+                        <option value="retail">Retail & Perdagangan</option>
+                        <option value="manufacturing">Manufaktur</option>
+                        <option value="technology">Teknologi & IT</option>
+                        <option value="healthcare">Kesehatan</option>
+                        <option value="education">Pendidikan</option>
+                        <option value="hospitality">Perhotelan & Pariwisata</option>
+                        <option value="finance">Keuangan & Perbankan</option>
+                        <option value="transportation">Transportasi & Logistik</option>
+                        <option value="agriculture">Pertanian & Perkebunan</option>
+                        <option value="construction">Konstruksi & Properti</option>
+                        <option value="food">Makanan & Minuman</option>
+                        <option value="automotive">Otomotif</option>
+                        <option value="energy">Energi & Pertambangan</option>
+                        <option value="consulting">Konsultan & Jasa Profesional</option>
+                        <option value="other">Lainnya</option>
+                    </select>
+                    <div class="error-message" id="businessFieldError">Bidang usaha wajib dipilih</div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Masukkan email" required>
+                    <div class="error-message" id="emailError">Format email tidak valid</div>
+                </div>
+            </div>
+
+            <!-- Row 3: No Telepon & Provinsi -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="phone">No. Telepon</label>
+                    <input type="tel" id="phone" name="phone" placeholder="Masukkan nomor telepon" required>
+                    <div class="error-message" id="phoneError">Nomor telepon tidak valid</div>
+                </div>
+                <div class="form-group">
+                    <label for="province">Provinsi</label>
+                    <select id="province" name="province" required>
+                        <option value="">Pilih provinsi</option>
+                        <option value="aceh">Aceh</option>
+                        <option value="sumut">Sumatera Utara</option>
+                        <option value="sumbar">Sumatera Barat</option>
+                        <option value="riau">Riau</option>
+                        <option value="kepri">Kepulauan Riau</option>
+                        <option value="jambi">Jambi</option>
+                        <option value="sumsel">Sumatera Selatan</option>
+                        <option value="babel">Bangka Belitung</option>
+                        <option value="bengkulu">Bengkulu</option>
+                        <option value="lampung">Lampung</option>
+                        <option value="jakarta">DKI Jakarta</option>
+                        <option value="jabar">Jawa Barat</option>
+                        <option value="banten">Banten</option>
+                        <option value="jateng">Jawa Tengah</option>
+                        <option value="jogja">DI Yogyakarta</option>
+                        <option value="jatim">Jawa Timur</option>
+                        <option value="bali">Bali</option>
+                        <option value="ntb">Nusa Tenggara Barat</option>
+                        <option value="ntt">Nusa Tenggara Timur</option>
+                        <option value="kalbar">Kalimantan Barat</option>
+                        <option value="kalteng">Kalimantan Tengah</option>
+                        <option value="kalsel">Kalimantan Selatan</option>
+                        <option value="kaltim">Kalimantan Timur</option>
+                        <option value="kalut">Kalimantan Utara</option>
+                        <option value="sulut">Sulawesi Utara</option>
+                        <option value="sulteng">Sulawesi Tengah</option>
+                        <option value="sulsel">Sulawesi Selatan</option>
+                        <option value="sultenggara">Sulawesi Tenggara</option>
+                        <option value="gorontalo">Gorontalo</option>
+                        <option value="sulbar">Sulawesi Barat</option>
+                        <option value="maluku">Maluku</option>
+                        <option value="malut">Maluku Utara</option>
+                        <option value="papua">Papua</option>
+                        <option value="papbar">Papua Barat</option>
+                    </select>
+                    <div class="error-message" id="provinceError">Provinsi wajib dipilih</div>
+                </div>
+            </div>
+
+            <!-- Kabupaten/Kota -->
+            <div class="form-group">
+                <label for="regency">Kabupaten/Kota</label>
+                <select id="regency" name="regency" required disabled>
+                    <option value="">Pilih provinsi terlebih dahulu</option>
+                </select>
+                <div class="error-message" id="regencyError">Kabupaten/Kota wajib dipilih</div>
+            </div>
+
+            <!-- Alamat Lengkap -->
+            <div class="form-group">
+                <label for="address">Alamat Lengkap</label>
+                <textarea id="address" name="address" placeholder="Masukkan alamat lengkap (jalan, nomor, kecamatan, kode pos)" required></textarea>
+                <div class="error-message" id="addressError">Alamat lengkap wajib diisi</div>
+            </div>
+
+            <button type="submit" class="register-btn" id="registerBtn">
+                <span id="btnText">Create Account</span>
+                <div class="loading" id="loading"></div>
+            </button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="index.html" id="loginLinkBtn">Sign in here</a>
+        </div>
+    </div>
+
+    <!-- Leaflet JavaScript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize map
+            const map = L.map('map', {
+                zoomControl: false
+            }).setView([-2.5489, 118.0149], 5);
+
+            // Add custom zoom control in bottom right
+            L.control.zoom({
+                position: 'bottomright'
+            }).addTo(map);
+
+            // Add Light/White themed tile layer (CartoDB Positron)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+                subdomains: 'abcd',
+                maxZoom: 20
+            }).addTo(map);
+
+            // Customer data (same as login page)
+            const customers = [
+                { name: 'PT Timur Sejahtera', city: 'Surabaya', lat: -7.2462, lng: 112.7378, amount: 8900000 },
+                { name: 'UD Matahari', city: 'Surabaya', lat: -7.2714, lng: 112.7688, amount: 2100000 },
+                { name: 'Toko Sinar Jaya', city: 'Malang', lat: -7.9666, lng: 112.6326, amount: 1200000 },
+                { name: 'CV Karya Mandiri', city: 'Malang', lat: -7.9797, lng: 112.6304, amount: 3800000 },
+                { name: 'PT Malang Raya', city: 'Malang', lat: -7.9553, lng: 112.6145, amount: 750000 },
+                { name: 'Batik Nusantara', city: 'Yogyakarta', lat: -7.7956, lng: 110.3695, amount: 2800000 },
+                { name: 'CV Gudeg Istimewa', city: 'Yogyakarta', lat: -7.8014, lng: 110.3644, amount: 6200000 },
+                { name: 'Toko Kerajinan Jogja', city: 'Yogyakarta', lat: -7.7831, lng: 110.3675, amount: 450000 },
+                { name: 'UD Merapi Jaya', city: 'Yogyakarta', lat: -7.8135, lng: 110.3785, amount: 9500000 },
+                { name: 'PT Sumatera Prima', city: 'Medan', lat: 3.5952, lng: 98.6722, amount: 8700000 },
+                { name: 'Toko Batak Jaya', city: 'Medan', lat: 3.5833, lng: 98.6667, amount: 1800000 },
+                { name: 'CV Deli Serdang', city: 'Medan', lat: 3.6135, lng: 98.6925, amount: 420000 },
+                { name: 'UD Medan Baru', city: 'Medan', lat: 3.5756, lng: 98.6588, amount: 5300000 },
+                { name: 'PT Musi Banyuasin', city: 'Palembang', lat: -2.9761, lng: 104.7754, amount: 4100000 },
+                { name: 'Toko Pempek Asli', city: 'Palembang', lat: -2.9900, lng: 104.7900, amount: 890000 },
+                { name: 'CV Sriwijaya Mandiri', city: 'Palembang', lat: -2.9518, lng: 104.7458, amount: 6800000 },
+                { name: 'UD Selatan Jaya', city: 'Palembang', lat: -2.9675, lng: 104.7565, amount: 2400000 },
+                { name: 'CV Bogor Hijau', city: 'Bogor', lat: -6.5971, lng: 106.8060, amount: 3400000 },
+                { name: 'Toko Kebun Raya', city: 'Bogor', lat: -6.5945, lng: 106.7968, amount: 1600000 },
+                { name: 'PT Banten Sejahtera', city: 'Serang', lat: -6.1200, lng: 106.1640, amount: 5200000 },
+                { name: 'UD Krakatau', city: 'Cilegon', lat: -6.0033, lng: 106.0186, amount: 7800000 },
+                { name: 'PT Sulawesi Prima', city: 'Makassar', lat: -5.1477, lng: 119.4327, amount: 8200000 },
+                { name: 'CV Bugis Sejahtera', city: 'Makassar', lat: -5.1708, lng: 119.4544, amount: 4400000 },
+                { name: 'Toko Losari', city: 'Makassar', lat: -5.1347, lng: 119.4067, amount: 1300000 }
+            ];
+
+            // Function to get marker color based on amount
+            function getMarkerColor(amount) {
+                if (amount < 1000000) return '#fbbf24'; // Yellow
+                if (amount >= 1000000 && amount <= 5000000) return '#f97316'; // Orange
+                return '#10b981'; // Green
+            }
+
+            // Add markers to map
+            customers.forEach((customer, index) => {
+                const color = getMarkerColor(customer.amount);
+                
+                const marker = L.circleMarker([customer.lat, customer.lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 0.8,
+                    fillOpacity: 0.7
+                }).addTo(map);
+
+                // Add glow effect with staggered animation
+                setTimeout(() => {
+                    if (marker._path) {
+                        marker._path.style.filter = `drop-shadow(0 0 6px ${color}) drop-shadow(0 0 12px ${color}40)`;
+                        marker._path.style.animation = `markerPulse 3s ease-in-out infinite`;
+                        marker._path.style.animationDelay = `${index * 0.15}s`;
+                    }
+                }, 800);
+            });
+
+            // Add marker pulse animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes markerPulse {
+                    0%, 100% { 
+                        transform: scale(1); 
+                        opacity: 0.7; 
+                    }
+                    50% { 
+                        transform: scale(1.05); 
+                        opacity: 1; 
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Kabupaten/Kota data
+            const regencyData = {
+                aceh: ['Banda Aceh', 'Sabang', 'Langsa', 'Lhokseumawe', 'Meulaboh', 'Subulussalam'],
+                sumut: ['Medan', 'Binjai', 'Tebing Tinggi', 'Pematangsiantar', 'Tanjungbalai', 'Sibolga', 'Gunungsitoli'],
+                sumbar: ['Padang', 'Bukittinggi', 'Padangpanjang', 'Payakumbuh', 'Sawahlunto', 'Solok', 'Pariaman'],
+                riau: ['Pekanbaru', 'Dumai', 'Bengkalis', 'Indragiri Hulu', 'Indragiri Hilir', 'Pelalawan', 'Siak'],
+                kepri: ['Batam', 'Tanjungpinang', 'Bintan', 'Karimun', 'Lingga', 'Natuna', 'Anambas'],
+                jambi: ['Jambi', 'Sungai Penuh', 'Kerinci', 'Merangin', 'Sarolangun', 'Batanghari', 'Muaro Jambi'],
+                sumsel: ['Palembang', 'Prabumulih', 'Pagar Alam', 'Lubuklinggau', 'Ogan Komering Ulu', 'Lahat', 'Musi Rawas'],
+                babel: ['Pangkalpinang', 'Bangka', 'Belitung', 'Bangka Barat', 'Bangka Tengah', 'Bangka Selatan', 'Belitung Timur'],
+                bengkulu: ['Bengkulu', 'Bengkulu Selatan', 'Rejang Lebong', 'Bengkulu Utara', 'Kaur', 'Seluma', 'Mukomuko'],
+                lampung: ['Bandar Lampung', 'Metro', 'Lampung Selatan', 'Lampung Tengah', 'Lampung Utara', 'Lampung Barat', 'Tulang Bawang'],
+                jakarta: ['Jakarta Pusat', 'Jakarta Utara', 'Jakarta Barat', 'Jakarta Selatan', 'Jakarta Timur', 'Kepulauan Seribu'],
+                jabar: ['Bandung', 'Bekasi', 'Bogor', 'Depok', 'Cimahi', 'Tasikmalaya', 'Banjar', 'Sukabumi', 'Cirebon', 'Garut'],
+                banten: ['Serang', 'Cilegon', 'Tangerang', 'Tangerang Selatan', 'Lebak', 'Pandeglang'],
+                jateng: ['Semarang', 'Surakarta', 'Salatiga', 'Magelang', 'Pekalongan', 'Tegal', 'Sukoharjo', 'Klaten', 'Boyolali'],
+                jogja: ['Yogyakarta', 'Sleman', 'Bantul', 'Kulon Progo', 'Gunungkidul'],
+                jatim: ['Surabaya', 'Malang', 'Batu', 'Blitar', 'Kediri', 'Madiun', 'Mojokerto', 'Pasuruan', 'Probolinggo', 'Sidoarjo'],
+                bali: ['Denpasar', 'Badung', 'Gianyar', 'Tabanan', 'Klungkung', 'Bangli', 'Karangasem', 'Buleleng', 'Jembrana'],
+                ntb: ['Mataram', 'Bima', 'Lombok Barat', 'Lombok Tengah', 'Lombok Timur', 'Sumbawa', 'Dompu', 'Lombok Utara'],
+                ntt: ['Kupang', 'Ende', 'Manggarai', 'Timor Tengah Selatan', 'Flores Timur', 'Sikka', 'Lembata', 'Rote Ndao'],
+                kalbar: ['Pontianak', 'Singkawang', 'Sambas', 'Bengkayang', 'Landak', 'Pontianak', 'Sanggau', 'Ketapang'],
+                kalteng: ['Palangka Raya', 'Kotawaringin Barat', 'Kotawaringin Timur', 'Kapuas', 'Barito Selatan', 'Barito Utara'],
+                kalsel: ['Banjarmasin', 'Banjarbaru', 'Banjar', 'Barito Kuala', 'Tapin', 'Hulu Sungai Selatan', 'Hulu Sungai Tengah'],
+                kaltim: ['Samarinda', 'Balikpapan', 'Bontang', 'Kutai Kartanegara', 'Kutai Barat', 'Kutai Timur', 'Berau'],
+                kalut: ['Tarakan', 'Bulungan', 'Malinau', 'Nunukan', 'Tana Tidung'],
+                sulut: ['Manado', 'Bitung', 'Tomohon', 'Kotamobagu', 'Minahasa', 'Minahasa Selatan', 'Minahasa Utara'],
+                sulteng: ['Palu', 'Donggala', 'Sigi', 'Parigi Moutong', 'Toli-Toli', 'Buol', 'Morowali'],
+                sulsel: ['Makassar', 'Parepare', 'Palopo', 'Gowa', 'Takalar', 'Jeneponto', 'Bantaeng', 'Bulukumba', 'Sinjai'],
+                sultenggara: ['Kendari', 'Bau-Bau', 'Konawe', 'Kolaka', 'Konawe Selatan', 'Bombana', 'Wakatobi', 'Kolaka Utara'],
+                gorontalo: ['Gorontalo', 'Boalemo', 'Gorontalo Utara', 'Bone Bolango', 'Pohuwato'],
+                sulbar: ['Mamuju', 'Polewali Mandar', 'Majene', 'Mamasa', 'Mamuju Utara'],
+                maluku: ['Ambon', 'Tual', 'Maluku Tengah', 'Buru', 'Kepulauan Aru', 'Seram Bagian Barat', 'Seram Bagian Timur'],
+                malut: ['Ternate', 'Tidore Kepulauan', 'Halmahera Barat', 'Halmahera Tengah', 'Kepulauan Sula', 'Halmahera Selatan'],
+                papua: ['Jayapura', 'Biak Numfor', 'Nabire', 'Kepulauan Yapen', 'Merauke', 'Asmat', 'Mappi', 'Boven Digoel'],
+                papbar: ['Manokwari', 'Sorong', 'Fakfak', 'Kaimana', 'Teluk Bintuni', 'Teluk Wondama', 'Maybrat', 'Tambrauw']
+            };
+
+            // Form elements
+            const registerForm = document.getElementById('registerForm');
+            const provinceSelect = document.getElementById('province');
+            const regencySelect = document.getElementById('regency');
+            const successMessage = document.getElementById('successMessage');
+            const registerBtn = document.getElementById('registerBtn');
+            const btnText = document.getElementById('btnText');
+            const loading = document.getElementById('loading');
+
+            // Province change handler
+            provinceSelect.addEventListener('change', function() {
+                const selectedProvince = this.value;
+                regencySelect.innerHTML = '<option value="">Pilih kabupaten/kota</option>';
+                
+                if (selectedProvince && regencyData[selectedProvince]) {
+                    regencySelect.disabled = false;
+                    regencyData[selectedProvince].forEach(regency => {
+                        const option = document.createElement('option');
+                        option.value = regency.toLowerCase().replace(/\s+/g, '-');
+                        option.textContent = regency;
+                        regencySelect.appendChild(option);
+                    });
+                } else {
+                    regencySelect.disabled = true;
+                    regencySelect.innerHTML = '<option value="">Pilih provinsi terlebih dahulu</option>';
+                }
+                
+                // Clear regency validation error if exists
+                hideError('regency', 'regencyError');
+            });
+
+            // Validation functions
+            function validateEmail(email) {
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return emailRegex.test(email);
+            }
+
+            function validatePhone(phone) {
+                const phoneRegex = /^(\+62|62|0)8[1-9][0-9]{6,9}$/;
+                return phoneRegex.test(phone.replace(/[\s-]/g, ''));
+            }
+
+            function validateRequired(value) {
+                return value.trim() !== '';
+            }
+
+            // Show/Hide error functions
+            function showError(inputId, errorId, message) {
+                const input = document.getElementById(inputId);
+                const error = document.getElementById(errorId);
+                
+                input.classList.add('error');
+                error.textContent = message;
+                error.style.display = 'block';
+            }
+
+            function hideError(inputId, errorId) {
+                const input = document.getElementById(inputId);
+                const error = document.getElementById(errorId);
+                
+                input.classList.remove('error');
+                error.style.display = 'none';
+            }
+
+            // Real-time validation
+            document.getElementById('fullName').addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    hideError('fullName', 'fullNameError');
+                } else if (!validateRequired(this.value)) {
+                    showError('fullName', 'fullNameError', 'Nama lengkap wajib diisi');
+                } else {
+                    hideError('fullName', 'fullNameError');
+                }
+            });
+
+            document.getElementById('companyName').addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    hideError('companyName', 'companyNameError');
+                } else if (!validateRequired(this.value)) {
+                    showError('companyName', 'companyNameError', 'Nama perusahaan wajib diisi');
+                } else {
+                    hideError('companyName', 'companyNameError');
+                }
+            });
+
+            document.getElementById('email').addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    hideError('email', 'emailError');
+                } else if (!validateEmail(this.value)) {
+                    showError('email', 'emailError', 'Format email tidak valid');
+                } else {
+                    hideError('email', 'emailError');
+                }
+            });
+
+            document.getElementById('phone').addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    hideError('phone', 'phoneError');
+                } else if (!validatePhone(this.value)) {
+                    showError('phone', 'phoneError', 'Format nomor telepon tidak valid');
+                } else {
+                    hideError('phone', 'phoneError');
+                }
+            });
+
+            document.getElementById('address').addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    hideError('address', 'addressError');
+                } else if (this.value.trim().length < 10) {
+                    showError('address', 'addressError', 'Alamat lengkap minimal 10 karakter');
+                } else {
+                    hideError('address', 'addressError');
+                }
+            });
+
+            // Form submission
+            registerForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    fullName: document.getElementById('fullName').value.trim(),
+                    companyName: document.getElementById('companyName').value.trim(),
+                    businessField: document.getElementById('businessField').value,
+                    email: document.getElementById('email').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    province: document.getElementById('province').value,
+                    regency: document.getElementById('regency').value,
+                    address: document.getElementById('address').value.trim()
+                };
+
+                let isValid = true;
+
+                // Validate all fields
+                if (!validateRequired(formData.fullName)) {
+                    showError('fullName', 'fullNameError', 'Nama lengkap wajib diisi');
+                    isValid = false;
+                } else {
+                    hideError('fullName', 'fullNameError');
+                }
+
+                if (!validateRequired(formData.companyName)) {
+                    showError('companyName', 'companyNameError', 'Nama perusahaan wajib diisi');
+                    isValid = false;
+                } else {
+                    hideError('companyName', 'companyNameError');
+                }
+
+                if (!formData.businessField) {
+                    showError('businessField', 'businessFieldError', 'Bidang usaha wajib dipilih');
+                    isValid = false;
+                } else {
+                    hideError('businessField', 'businessFieldError');
+                }
+
+                if (!validateEmail(formData.email)) {
+                    showError('email', 'emailError', 'Format email tidak valid');
+                    isValid = false;
+                } else {
+                    hideError('email', 'emailError');
+                }
+
+                if (!validatePhone(formData.phone)) {
+                    showError('phone', 'phoneError', 'Format nomor telepon tidak valid');
+                    isValid = false;
+                } else {
+                    hideError('phone', 'phoneError');
+                }
+
+                if (!formData.province) {
+                    showError('province', 'provinceError', 'Provinsi wajib dipilih');
+                    isValid = false;
+                } else {
+                    hideError('province', 'provinceError');
+                }
+
+                if (!formData.regency) {
+                    showError('regency', 'regencyError', 'Kabupaten/Kota wajib dipilih');
+                    isValid = false;
+                } else {
+                    hideError('regency', 'regencyError');
+                }
+
+                if (!validateRequired(formData.address) || formData.address.length < 10) {
+                    showError('address', 'addressError', 'Alamat lengkap minimal 10 karakter');
+                    isValid = false;
+                } else {
+                    hideError('address', 'addressError');
+                }
+
+                if (isValid) {
+                    // Show loading state
+                    registerBtn.disabled = true;
+                    btnText.style.opacity = '0';
+                    loading.style.display = 'block';
+
+                    // Save registration data to localStorage (for demo purposes)
+                    localStorage.setItem('registrationData', JSON.stringify(formData));
+
+                    // Simulate registration process
+                    setTimeout(function() {
+                        // Hide loading state
+                        registerBtn.disabled = false;
+                        btnText.style.opacity = '1';
+                        loading.style.display = 'none';
+
+                        // Show success message
+                        successMessage.style.display = 'block';
+
+                        // Redirect to package selection page after 2 seconds
+                        setTimeout(function() {
+                            window.location.href = 'paket.html';
+                        }, 2000);
+                    }, 2500);
+                }
+            });
+
+            // Login link handler
+            document.getElementById('loginLinkBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                window.location.href = 'index.html';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - DATAUWITAN</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #134e4a 0%, #059669 100%);
+            color: white;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .admin-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 32px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .nav-item.active {
+            background: #d1fae5;
+            color: #134e4a;
+            border-left-color: #134e4a;
+        }
+
+        .nav-item .icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .nav-item .badge {
+            background: #ef4444;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-left: auto;
+            float: right;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #134e4a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .user-action {
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        .user-action:hover {
+            color: #374151;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .breadcrumb .current {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+
+
+        .refresh-button {
+            padding: 8px 16px;
+            background: #134e4a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .refresh-button:hover {
+            background: #0f2419;
+        }
+
+        .refresh-button.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .refresh-button.loading .fa-sync {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 32px;
+        }
+
+        .page-header {
+            margin-bottom: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+
+        .quick-filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            color: #374151;
+            transition: all 0.2s ease;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #134e4a;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+        }
+
+        .filter-button {
+            padding: 8px 16px;
+            background: #134e4a;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .filter-button:hover {
+            background: #0f2419;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card:hover {
+            border-color: #134e4a;
+            box-shadow: 0 4px 6px -1px rgba(19, 78, 74, 0.1);
+        }
+
+        .stat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .stat-icon.blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .stat-icon.green {
+            background: #d1fae5;
+            color: #134e4a;
+        }
+
+        .stat-icon.yellow {
+            background: #fef3c7;
+            color: #f59e0b;
+        }
+
+        .stat-icon.purple {
+            background: #f3e8ff;
+            color: #7c3aed;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .stat-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .stat-change.positive {
+            color: #059669;
+        }
+
+        .stat-change.negative {
+            color: #ef4444;
+        }
+
+        .stat-change.neutral {
+            color: #6b7280;
+        }
+
+        .stat-period {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-left: 8px;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-control {
+            padding: 4px 8px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: white;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+
+        .chart-control.active {
+            background: #134e4a;
+            color: white;
+            border-color: #134e4a;
+        }
+
+        .chart-container {
+            height: 300px;
+            width: 100%;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+            
+            .page-content {
+                padding: 20px;
+            }
+            
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-filters {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-shield-alt"></i>
+                DATAUWITAN
+                <span class="admin-badge">Admin</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <a href="#" class="nav-item active">
+                    <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
+                    Dashboard
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Management</div>
+                <a href="admin-users.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-users"></i></span>
+                    Users
+                    <span class="badge">1,234</span>
+                </a>
+                <a href="admin-payments.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-credit-card"></i></span>
+                    Payments
+                    <span class="badge">5</span>
+                </a>
+                <a href="admin-subs-plan.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-tags"></i></span>
+                    Subscription Plans
+                </a>
+            </div>
+            
+         
+        </nav>
+        
+        <div class="sidebar-user">
+            <div class="user-info">
+                <div class="user-avatar">AD</div>
+                <div class="user-details">
+                    <div class="user-name">Super Admin</div>
+                    <div class="user-role">Administrator</div>
+                    <div class="user-action" onclick="logout()">Sign out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="breadcrumb">
+                    <span class="current">Dashboard</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <button class="refresh-button" onclick="refreshData()">
+                    <i class="fas fa-sync"></i>
+                    Refresh
+                </button>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <div class="page-header">
+                <h1 class="page-title">Admin Dashboard</h1>
+                <p class="page-subtitle">Monitor dan kelola aktivitas sistem DATAUWITAN</p>
+                
+                <div class="quick-filters">
+                    <div class="filter-group">
+                        <label class="filter-label">From:</label>
+                        <input type="date" class="filter-input" id="startDate" value="2024-01-01">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">To:</label>
+                        <input type="date" class="filter-input" id="endDate" value="2024-12-31">
+                    </div>
+                    <button class="filter-button" onclick="applyDateFilter()">
+                        <i class="fas fa-filter"></i>
+                        Apply Filter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Total Users</div>
+                        <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                    </div>
+                    <div class="stat-value">1,234</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +12.5%
+                        <span class="stat-period">vs last month</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">New Registrations</div>
+                        <div class="stat-icon green"><i class="fas fa-user-plus"></i></div>
+                    </div>
+                    <div class="stat-value">89</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +8.2%
+                        <span class="stat-period">vs last month</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Monthly Revenue</div>
+                        <div class="stat-icon yellow"><i class="fas fa-money-bill"></i></div>
+                    </div>
+                    <div class="stat-value">Rp 45.2M</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +15.3%
+                        <span class="stat-period">vs last month</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-title">Active Subscriptions</div>
+                        <div class="stat-icon purple"><i class="fas fa-crown"></i></div>
+                    </div>
+                    <div class="stat-value">892</div>
+                    <div class="stat-change positive">
+                        <i class="fas fa-arrow-up"></i>
+                        +3.1%
+                        <span class="stat-period">vs last month</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-section">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Revenue Overview</h3>
+                        <div class="chart-controls">
+                            <button class="chart-control active" data-chart="revenue" data-period="1m">1M</button>
+                            <button class="chart-control" data-chart="revenue" data-period="6m">6M</button>
+                            <button class="chart-control" data-chart="revenue" data-period="1y">1Y</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3 class="chart-title">User Growth</h3>
+                        <div class="chart-controls">
+                            <button class="chart-control active" data-chart="users" data-period="1m">1M</button>
+                            <button class="chart-control" data-chart="users" data-period="6m">6M</button>
+                            <button class="chart-control" data-chart="users" data-period="1y">1Y</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="usersChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            
+      
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize charts
+            initRevenueChart();
+            initUsersChart();
+            
+            // Set default date values
+            setDefaultDates();
+            
+            // Chart controls
+            const chartControls = document.querySelectorAll('.chart-control');
+            chartControls.forEach(control => {
+                control.addEventListener('click', function() {
+                    const chart = this.dataset.chart;
+                    const period = this.dataset.period;
+                    
+                    // Update active state
+                    this.parentElement.querySelectorAll('.chart-control').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    // Update chart
+                    updateChart(chart, period);
+                });
+            });
+            
+            // Mobile menu toggle
+            if (window.innerWidth <= 1024) {
+                createMobileMenu();
+            }
+            
+            // Auto-refresh data every 30 seconds
+            setInterval(refreshData, 30000);
+        });
+        
+        // Set default dates
+        function setDefaultDates() {
+            const today = new Date();
+            const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+            
+            document.getElementById('startDate').value = firstDayOfYear.toISOString().split('T')[0];
+            document.getElementById('endDate').value = today.toISOString().split('T')[0];
+        }
+        
+        // Apply date filter
+        function applyDateFilter() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates');
+                return;
+            }
+            
+            if (new Date(startDate) > new Date(endDate)) {
+                alert('Start date must be before end date');
+                return;
+            }
+            
+            // Update stats based on date range
+            updateStatsByDateRange(startDate, endDate);
+            
+            // Update charts
+            updateChartsByDateRange(startDate, endDate);
+            
+            // Show success message
+            showFilterSuccess(startDate, endDate);
+        }
+        
+        // Update stats by date range
+        function updateStatsByDateRange(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Generate stats based on date range
+            const baseUsers = 1000;
+            const userGrowth = Math.floor(diffDays * 0.5);
+            const totalUsers = baseUsers + userGrowth;
+            
+            const registrations = Math.floor(diffDays * 2.5);
+            const revenue = Math.floor(diffDays * 150000);
+            const subscriptions = Math.floor(totalUsers * 0.7);
+            
+            // Update stat cards with animation
+            const statCards = document.querySelectorAll('.stat-card');
+            const values = [
+                totalUsers.toLocaleString(),
+                registrations.toLocaleString(),
+                `Rp ${(revenue / 1000000).toFixed(1)}M`,
+                subscriptions.toLocaleString()
+            ];
+            
+            statCards.forEach((card, index) => {
+                const value = card.querySelector('.stat-value');
+                value.style.opacity = '0.5';
+                setTimeout(() => {
+                    value.textContent = values[index];
+                    value.style.opacity = '1';
+                }, 200);
+            });
+        }
+        
+        // Update charts by date range
+        function updateChartsByDateRange(startDate, endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const diffTime = Math.abs(end - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            // Generate labels based on date range
+            let labels = [];
+            let revenueData = [];
+            let userData = [];
+            
+            if (diffDays <= 30) {
+                // Show daily data
+                for (let i = 0; i < Math.min(diffDays, 30); i++) {
+                    const date = new Date(start);
+                    date.setDate(start.getDate() + i);
+                    labels.push(date.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' }));
+                    revenueData.push(Math.floor(Math.random() * 500000 + 100000));
+                    userData.push(Math.floor(Math.random() * 50 + 20));
+                }
+            } else if (diffDays <= 365) {
+                // Show monthly data
+                const monthsDiff = Math.ceil(diffDays / 30);
+                for (let i = 0; i < monthsDiff; i++) {
+                    const date = new Date(start);
+                    date.setMonth(start.getMonth() + i);
+                    labels.push(date.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' }));
+                    revenueData.push(Math.floor(Math.random() * 15000000 + 5000000));
+                    userData.push(Math.floor(Math.random() * 300 + 100));
+                }
+            } else {
+                // Show yearly data
+                const yearsDiff = Math.ceil(diffDays / 365);
+                for (let i = 0; i < yearsDiff; i++) {
+                    const year = start.getFullYear() + i;
+                    labels.push(year.toString());
+                    revenueData.push(Math.floor(Math.random() * 180000000 + 60000000));
+                    userData.push(Math.floor(Math.random() * 3000 + 1000));
+                }
+            }
+            
+            // Update charts only if they exist
+            if (window.revenueChart) {
+                window.revenueChart.data.labels = labels;
+                window.revenueChart.data.datasets[0].data = revenueData;
+                window.revenueChart.update('active');
+            }
+            
+            if (window.usersChart) {
+                window.usersChart.data.labels = labels;
+                window.usersChart.data.datasets[0].data = userData;
+                window.usersChart.update('active');
+            }
+        }
+        
+        // Show filter success message
+        function showFilterSuccess(startDate, endDate) {
+            const start = new Date(startDate).toLocaleDateString('id-ID');
+            const end = new Date(endDate).toLocaleDateString('id-ID');
+            
+            // Create toast notification
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #134e4a;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-size: 14px;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            toast.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                Filter applied: ${start} - ${end}
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Initialize Revenue Chart
+        function initRevenueChart() {
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            window.revenueChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                    datasets: [{
+                        label: 'Revenue (Millions)',
+                        data: [35, 42, 38, 48, 52, 45, 58, 62, 55, 67, 71, 68],
+                        borderColor: '#134e4a',
+                        backgroundColor: 'rgba(19, 78, 74, 0.1)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#134e4a',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#134e4a',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Revenue: Rp ' + context.parsed.y + 'M';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return 'Rp ' + value + 'M';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize Users Chart
+        function initUsersChart() {
+            const ctx = document.getElementById('usersChart').getContext('2d');
+            window.usersChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'New Users',
+                        data: [89, 125, 156, 134, 178, 195],
+                        backgroundColor: '#134e4a',
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#134e4a',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Refresh data
+        function refreshData() {
+            const refreshButton = document.querySelector('.refresh-button');
+            refreshButton.classList.add('loading');
+            
+            // Simulate API call
+            setTimeout(() => {
+                refreshButton.classList.remove('loading');
+                
+                // Trigger current date filter
+                applyDateFilter();
+                
+                // Show refresh success
+                showRefreshSuccess();
+            }, 2000);
+        }
+        
+        // Show refresh success message
+        function showRefreshSuccess() {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                font-size: 14px;
+                transform: translateX(100%);
+                transition: all 0.3s ease;
+            `;
+            toast.innerHTML = `
+                <i class="fas fa-sync"></i>
+                Data refreshed successfully
+            `;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+            
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+        }
+
+        
+        // Update chart data
+        function updateChart(chartType, period) {
+            const data = {
+                revenue: {
+                    '1m': {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        data: [12, 15, 18, 16]
+                    },
+                    '6m': {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        data: [35, 42, 38, 48, 52, 45]
+                    },
+                    '1y': {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        data: [35, 42, 38, 48, 52, 45, 58, 62, 55, 67, 71, 68]
+                    }
+                },
+                users: {
+                    '1m': {
+                        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+                        data: [45, 52, 48, 56]
+                    },
+                    '6m': {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        data: [89, 125, 156, 134, 178, 195]
+                    },
+                    '1y': {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        data: [89, 125, 156, 134, 178, 195, 213, 245, 267, 289, 312, 334]
+                    }
+                }
+            };
+            
+            const chartData = data[chartType][period];
+            const chart = chartType === 'revenue' ? window.revenueChart : window.usersChart;
+            
+            // Update only if chart exists
+            if (chart) {
+                chart.data.labels = chartData.labels;
+                chart.data.datasets[0].data = chartData.data;
+                chart.update('active');
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            const refreshButton = document.querySelector('.refresh-button');
+            refreshButton.classList.add('loading');
+            
+            // Simulate API call
+            setTimeout(() => {
+                refreshButton.classList.remove('loading');
+                
+                // Update real-time stats
+                updateRealTimeStats();
+                
+                // Update activity list
+                addNewActivity();
+                
+                // Update last updated time
+                updateLastUpdated();
+            }, 2000);
+        }
+        
+        // Update real-time stats
+        function updateRealTimeStats() {
+            const onlineUsers = document.querySelector('.header-stat-value');
+            const todayRevenue = document.querySelectorAll('.header-stat-value')[1];
+            
+            // Random updates
+            const newOnlineUsers = Math.floor(Math.random() * 50) + 100;
+            const newRevenue = (Math.random() * 2 + 1.5).toFixed(1);
+            
+            onlineUsers.textContent = newOnlineUsers;
+            todayRevenue.textContent = `Rp ${newRevenue}M`;
+        }
+        
+        // Add new activity
+        function addNewActivity() {
+            const activities = [
+                {
+                    icon: 'user',
+                    iconClass: 'fas fa-user-plus',
+                    text: 'New user registration: ' + generateRandomName(),
+                    status: 'success'
+                },
+                {
+                    icon: 'payment',
+                    iconClass: 'fas fa-credit-card',
+                    text: 'Payment processed: Rp 299,000 - Pro Plan',
+                    status: 'success'
+                },
+                {
+                    icon: 'upload',
+                    iconClass: 'fas fa-upload',
+                    text: 'File upload: data_penjualan_' + new Date().toISOString().slice(0, 10) + '.xlsx',
+                    status: 'success'
+                }
+            ];
+            
+            const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+            const activityList = document.querySelector('.activity-list');
+            
+            const newActivity = document.createElement('div');
+            newActivity.className = 'activity-item';
+            newActivity.innerHTML = `
+                <div class="activity-icon ${randomActivity.icon}">
+                    <i class="${randomActivity.iconClass}"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">${randomActivity.text}</div>
+                    <div class="activity-time">Just now</div>
+                </div>
+                <div class="activity-status ${randomActivity.status}">Success</div>
+            `;
+            
+            activityList.insertBefore(newActivity, activityList.firstChild);
+            
+            // Remove oldest activity if more than 5
+            if (activityList.children.length > 5) {
+                activityList.removeChild(activityList.lastChild);
+            }
+        }
+        
+        // Generate random name
+        function generateRandomName() {
+            const names = ['Ahmad Pratama', 'Siti Nurhaliza', 'Budi Santoso', 'Dewi Sartika', 'Rudi Hermawan', 'Maya Sari', 'Andi Wijaya', 'Rina Permata'];
+            return names[Math.floor(Math.random() * names.length)];
+        }
+        
+        // Update last updated time
+        function updateLastUpdated() {
+            const lastUpdated = document.getElementById('lastUpdated');
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('id-ID', { 
+                hour: '2-digit', 
+                minute: '2-digit'
+            });
+            lastUpdated.textContent = timeString;
+        }
+        
+        // Create mobile menu
+        function createMobileMenu() {
+            const menuToggle = document.createElement('button');
+            menuToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            menuToggle.style.cssText = `
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1001;
+                background: #134e4a;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s ease;
+            `;
+            
+            document.body.appendChild(menuToggle);
+            
+            menuToggle.addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+            
+            // Close sidebar when clicking outside
+            document.addEventListener('click', function(e) {
+                const sidebar = document.getElementById('sidebar');
+                if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            });
+        }
+        
+        // Logout function
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin keluar dari admin dashboard?')) {
+                localStorage.removeItem('adminRememberMe');
+                localStorage.removeItem('adminUsername');
+                window.location.href = 'admin-login.html';
+            }
+        }
+        
+        // Check if user is logged in
+        function checkAuth() {
+            // In a real application, this would check session/token
+            // For demo purposes, we'll skip this
+        }
+        
+        // Initialize auth check
+        checkAuth();
+    </script>
+</body>

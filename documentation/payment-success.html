@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pembayaran Berhasil - DATAUWITAN</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 50%, #dcfce7 100%);
+            min-height: 100vh;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+
+        /* Success Card */
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 48px 40px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #10b981, #059669, #047857);
+        }
+
+        .success-animation {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 32px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            animation: successPulse 2s infinite;
+            position: relative;
+        }
+
+        .success-animation::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #10b981;
+            animation: ripple 2s infinite;
+        }
+
+        @keyframes successPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .success-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 12px;
+        }
+
+        .success-subtitle {
+            font-size: 18px;
+            color: #059669;
+            margin-bottom: 32px;
+            font-weight: 500;
+        }
+
+        .transaction-info {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .transaction-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .transaction-id {
+            font-size: 14px;
+            color: #6b7280;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .copy-btn {
+            background: #134e4a;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .copy-btn:hover {
+            background: #0f2419;
+            transform: translateY(-1px);
+        }
+
+        .payment-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: left;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #1f2937;
+            font-weight: 600;
+        }
+
+        .plan-badge {
+            background: linear-gradient(135deg, #134e4a, #059669);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            min-width: 160px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #134e4a, #059669);
+            color: white;
+            box-shadow: 0 4px 12px rgba(19, 78, 74, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(19, 78, 74, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+
+        .btn-secondary:hover {
+            background: #f9fafb;
+            border-color: #d1d5db;
+            transform: translateY(-1px);
+        }
+
+        /* Features Preview */
+        .features-preview {
+            background: linear-gradient(135deg, #f0fdfa, #ecfdf5);
+            border-radius: 16px;
+            padding: 32px 24px;
+            margin-bottom: 32px;
+            border: 1px solid #a7f3d0;
+        }
+
+        .features-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #d1fae5;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #134e4a, #059669);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .feature-text {
+            flex: 1;
+        }
+
+        .feature-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1f2937;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        /* Next Steps */
+        .next-steps {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 24px;
+        }
+
+        .steps-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: #134e4a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #1f2937;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* Footer */
+        .success-footer {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer-links {
+            margin-top: 16px;
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: #134e4a;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-link:hover {
+            color: #0f2419;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .success-card {
+                padding: 32px 24px;
+            }
+            
+            .success-title {
+                font-size: 24px;
+            }
+            
+            .success-subtitle {
+                font-size: 16px;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .transaction-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .payment-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .footer-links {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+
+        /* Animation for entrance */
+        .fade-in {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in {
+            animation: slideIn 0.6s ease-out 0.3s both;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-card fade-in">
+            <!-- Success Animation -->
+            <div class="success-animation">
+                <i class="fas fa-check"></i>
+            </div>
+            
+            <!-- Success Message -->
+            <h1 class="success-title">Pembayaran Berhasil!</h1>
+            <p class="success-subtitle">Selamat! Akun Anda telah diaktivasi</p>
+            
+            <!-- Transaction Info -->
+            <div class="transaction-info slide-in">
+                <div class="transaction-header">
+                    <div class="transaction-id" id="transactionId">TXN-1234567890-123</div>
+                    <button class="copy-btn" onclick="copyTransactionId()">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                </div>
+                
+                <div class="payment-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Paket Berlangganan</div>
+                        <div class="detail-value">
+                            <span class="plan-badge" id="planName">Pro - 6 Bulan</span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Total Pembayaran</div>
+                        <div class="detail-value" id="totalAmount">Rp 1,658,340</div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Metode Pembayaran</div>
+                        <div class="detail-value" id="paymentMethod">Kartu Kredit</div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Status</div>
+                        <div class="detail-value">
+                            <span class="status-badge">
+                                <i class="fas fa-check-circle"></i> Berhasil
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Tanggal Transaksi</div>
+                        <div class="detail-value" id="transactionDate">16 Juli 2025, 14:30</div>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <div class="detail-label">Berlaku Hingga</div>
+                        <div class="detail-value" id="expiryDate">16 Januari 2026</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="home.html" class="btn btn-primary" onclick="goToDashboard()">
+                    <i class="fas fa-home"></i> Akses Dashboard Sekarang
+                </a>
+                <button class="btn btn-secondary" onclick="downloadInvoice()">
+                    <i class="fas fa-file-invoice"></i> Download Invoice
+                </button>
+            </div>
+            
+            <!-- Features Preview -->
+            <div class="features-preview slide-in">
+                <h3 class="features-title">Fitur yang Sudah Bisa Anda Akses</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-bar"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-name">Dashboard Interaktif</div>
+                            <div class="feature-desc">Visualisasi data real-time</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-name">Analisis Mendalam</div>
+                            <div class="feature-desc">Insight bisnis yang akurat</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-file-export"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-name">Export Laporan</div>
+                            <div class="feature-desc">PDF, Excel, dan format lainnya</div>
+                        </div>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon"><i class="fas fa-headset"></i></div>
+                        <div class="feature-text">
+                            <div class="feature-name">Priority Support</div>
+                            <div class="feature-desc">Tim support khusus untuk Anda</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Next Steps -->
+            <div class="next-steps slide-in">
+                <h3 class="steps-title">Langkah Selanjutnya</h3>
+                <div class="steps-list">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Akses Dashboard</div>
+                            <div class="step-desc">Mulai eksplorasi fitur-fitur lengkap DataUwitan</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Upload Data Penjualan</div>
+                            <div class="step-desc">Import data existing atau mulai input data baru</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Setup Dashboard</div>
+                            <div class="step-desc">Kustomisasi dashboard sesuai kebutuhan bisnis Anda</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Mulai Analisis</div>
+                            <div class="step-desc">Dapatkan insight untuk meningkatkan penjualan</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="success-footer">
+                <p>
+                    Invoice dan detail pembayaran telah dikirim ke email Anda.<br>
+                    Jika ada pertanyaan, silakan hubungi tim support kami.
+                </p>
+                
+                <div class="footer-links">
+                    <a href="#" class="footer-link" onclick="contactSupport()">
+                        <i class="fas fa-comments"></i> Contact Support
+                    </a>
+                    <a href="#" class="footer-link" onclick="viewBilling()">
+                        <i class="fas fa-credit-card"></i> Billing History
+                    </a>
+                    <a href="#" class="footer-link" onclick="downloadInvoice()">
+                        <i class="fas fa-file-invoice"></i> Download Invoice
+                    </a>
+                    <a href="#" class="footer-link" onclick="viewHelp()">
+                        <i class="fas fa-question-circle"></i> Help Center
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let paymentData = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            animateElements();
+        });
+
+        function initializePage() {
+            // Get payment data from localStorage
+            const savedPaymentData = localStorage.getItem('paymentResult');
+            if (savedPaymentData) {
+                paymentData = JSON.parse(savedPaymentData);
+                updatePageWithPaymentData();
+            } else {
+                // Fallback data for testing
+                paymentData = {
+                    transactionId: 'TXN-' + Date.now() + '-123',
+                    method: 'credit-card',
+                    amount: 'Rp 1,658,340',
+                    plan: { type: '6months' },
+                    timestamp: new Date().toISOString()
+                };
+                updatePageWithPaymentData();
+            }
+
+            // Mark user as subscribed
+            localStorage.setItem('userSubscribed', 'true');
+            localStorage.setItem('subscriptionStart', new Date().toISOString());
+        }
+
+        function updatePageWithPaymentData() {
+            // Transaction ID
+            document.getElementById('transactionId').textContent = paymentData.transactionId;
+
+            // Plan name
+            const planNames = {
+                '1month': 'DataUwitan - 1 Bulan',
+                '6months': 'DataUwitan - 6 Bulan', 
+                '12months': 'DataUwitan - 12 Bulan'
+            };
+            document.getElementById('planName').textContent = planNames[paymentData.plan.type] || 'DataUwitan Pro';
+
+            // Payment amount
+            document.getElementById('totalAmount').textContent = paymentData.amount;
+
+            // Payment method
+            const methodNames = {
+                'credit-card': 'Kartu Kredit',
+                'bank-transfer': `Transfer Bank (${paymentData.bank ? paymentData.bank.toUpperCase() : 'Bank'})`,
+                'ewallet': `E-Wallet (${paymentData.wallet ? paymentData.wallet.toUpperCase() : 'E-Wallet'})`,
+                'qris': 'QRIS'
+            };
+            document.getElementById('paymentMethod').textContent = methodNames[paymentData.method] || 'Kartu Kredit';
+
+            // Transaction date
+            const transactionDate = new Date(paymentData.timestamp);
+            document.getElementById('transactionDate').textContent = formatDate(transactionDate);
+
+            // Expiry date
+            const expiryDate = calculateExpiryDate(paymentData.plan.type, transactionDate);
+            document.getElementById('expiryDate').textContent = formatDate(expiryDate);
+        }
+
+        function formatDate(date) {
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return date.toLocaleDateString('id-ID', options);
+        }
+
+        function calculateExpiryDate(planType, startDate) {
+            const expiry = new Date(startDate);
+            
+            switch (planType) {
+                case '1month':
+                    expiry.setMonth(expiry.getMonth() + 1);
+                    break;
+                case '6months':
+                    expiry.setMonth(expiry.getMonth() + 6);
+                    break;
+                case '12months':
+                    expiry.setFullYear(expiry.getFullYear() + 1);
+                    break;
+                default:
+                    expiry.setMonth(expiry.getMonth() + 6);
+            }
+            
+            return expiry;
+        }
+
+        function animateElements() {
+            // Stagger animation for cards
+            const slideElements = document.querySelectorAll('.slide-in');
+            slideElements.forEach((element, index) => {
+                element.style.animationDelay = `${0.4 + (index * 0.2)}s`;
+            });
+
+            // Confetti effect
+            setTimeout(createConfetti, 1000);
+        }
+
+        function createConfetti() {
+            const colors = ['#10b981', '#059669', '#047857', '#065f46'];
+            const confettiCount = 50;
+
+            for (let i = 0; i < confettiCount; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.style.cssText = `
+                        position: fixed;
+                        top: -10px;
+                        left: ${Math.random() * 100}vw;
+                        width: 8px;
+                        height: 8px;
+                        background: ${colors[Math.floor(Math.random() * colors.length)]};
+                        pointer-events: none;
+                        z-index: 1000;
+                        border-radius: 50%;
+                        animation: confettiFall 3s ease-out forwards;
+                    `;
+                    
+                    document.body.appendChild(confetti);
+                    
+                    setTimeout(() => {
+                        document.body.removeChild(confetti);
+                    }, 3000);
+                }, i * 50);
+            }
+        }
+
+        // Add confetti animation CSS
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes confettiFall {
+                to {
+                    transform: translateY(100vh) rotate(360deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        function copyTransactionId() {
+            const transactionId = document.getElementById('transactionId').textContent;
+            navigator.clipboard.writeText(transactionId).then(() => {
+                const copyBtn = document.querySelector('.copy-btn');
+                const originalText = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                copyBtn.style.background = '#10b981';
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalText;
+                    copyBtn.style.background = '#134e4a';
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = transactionId;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                alert('Transaction ID copied to clipboard!');
+            });
+        }
+
+        function goToDashboard() {
+            // Clear payment data
+            localStorage.removeItem('paymentResult');
+            
+            // Add welcome flag for dashboard
+            localStorage.setItem('showWelcome', 'true');
+            
+            // Redirect to home/dashboard
+            window.location.href = 'home.html';
+        }
+
+        function downloadInvoice() {
+            // Simulate invoice download
+            const invoiceData = {
+                transactionId: paymentData.transactionId,
+                amount: paymentData.amount,
+                date: paymentData.timestamp,
+                plan: paymentData.plan.type
+            };
+            
+            // In real app, this would generate and download actual PDF
+            const blob = new Blob([JSON.stringify(invoiceData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `invoice-${paymentData.transactionId}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show success message
+            alert('Invoice berhasil didownload!\n\nPada implementasi nyata, ini akan mengunduh file PDF invoice.');
+        }
+
+        function contactSupport() {
+            alert('Menghubungi Customer Support...\n\n📧 Email: support@datauwitan.com\n📞 Phone: +62 21 1234 5678\n💬 Live Chat: Akan segera tersedia\n\n🕒 Available: 24/7');
+        }
+
+        function viewBilling() {
+            alert('Mengalihkan ke halaman Billing History...');
+            // In real app: window.location.href = 'payment.html';
+        }
+
+        function viewHelp() {
+            alert('Mengalihkan ke Help Center...\n\nAnda akan menemukan:\n• Getting Started Guide\n• Video Tutorials\n• FAQ\n• Best Practices');
+            // In real app: window.location.href = 'help.html';
+        }
+
+        // Auto-redirect to dashboard after 30 seconds
+        let autoRedirectTimer = setTimeout(() => {
+            if (confirm('Ingin langsung ke dashboard sekarang?')) {
+                goToDashboard();
+            }
+        }, 30000);
+
+        // Cancel auto-redirect if user interacts
+        document.addEventListener('click', () => {
+            clearTimeout(autoRedirectTimer);
+        });
+
+        // Send confirmation email (simulation)
+        setTimeout(() => {
+            console.log('Confirmation email sent to user');
+            // In real app, trigger email sending via API
+        }, 2000);
+
+        // Analytics tracking (simulation)
+        setTimeout(() => {
+            console.log('Payment success event tracked');
+            // In real app, send to analytics service
+        }, 1000);
+    </script>
+</body>
+</html>

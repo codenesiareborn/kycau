@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Data - Filament Demo</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 32px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .nav-item.active {
+            background: #d1fae5;
+            color: #134e4a;
+            border-left-color: #134e4a;
+        }
+
+        .nav-item .icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #374151;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-action {
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+
+        .user-action:hover {
+            color: #374151;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #374151;
+        }
+
+        .breadcrumb .separator {
+            color: #d1d5db;
+        }
+
+        .breadcrumb .current {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 8px 16px 8px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f9fafb;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #134e4a;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        /* Filters */
+        .filters-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+
+        .filter-input:focus {
+            outline: none;
+            border-color: #134e4a;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+        }
+
+        /* Metrics Cards */
+        .metrics-section {
+            margin-bottom: 32px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .metric-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .metric-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #6b7280;
+        }
+
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .metric-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+        }
+
+        .metric-change.positive {
+            color: #059669;
+        }
+
+        .metric-change.negative {
+            color: #dc2626;
+        }
+
+        /* Map Section */
+        .map-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+        }
+
+        .btn-primary {
+            background: #134e4a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0f2419;
+        }
+
+        .btn-secondary {
+            background: #f9fafb;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-secondary:hover {
+            background: #f0fdfa;
+            border-color: #134e4a;
+            color: #134e4a;
+        }
+
+        .map-container {
+            height: 500px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .map-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 9999;
+            background: white;
+        }
+
+        .map-fullscreen .map-container {
+            height: calc(100vh - 80px);
+            border-radius: 0;
+        }
+
+        .fullscreen-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Custom Leaflet Styles */
+        .leaflet-container {
+            background: #ffffff;
+        }
+
+        .customer-marker {
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .marker-yellow {
+            background: #fbbf24;
+        }
+
+        .marker-orange {
+            background: #f97316;
+        }
+
+        .marker-green {
+            background: #10b981;
+        }
+
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+        }
+
+        .leaflet-popup-content {
+            margin: 0;
+        }
+
+        /* Charts Grid */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            min-height: 400px;
+        }
+
+        .chart-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .chart-container {
+            height: 320px;
+            width: 100%;
+        }
+
+        /* Table Section */
+        .table-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            margin-bottom: 32px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .data-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f3f4f6;
+            color: #6b7280;
+        }
+
+        .data-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        /* Upload History */
+        .history-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: #134e4a;
+            background: #f0fdfa;
+        }
+
+        .history-info {
+            flex: 1;
+        }
+
+        .history-filename {
+            font-weight: 500;
+            color: #1f2937;
+            margin-bottom: 4px;
+        }
+
+        .history-details {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .history-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-processing {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 32px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 16px;
+            top: 16px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 16px;
+        }
+
+        .modal-subtitle {
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        .modal-options {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .option-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-card:hover {
+            border-color: #134e4a;
+            background: #f0fdfa;
+        }
+
+        .option-title {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .option-description {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+            
+            .search-input {
+                width: 200px;
+            }
+            
+            .page-content {
+                padding: 20px;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-input {
+                display: none;
+            }
+            
+            .filters-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-options {
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">DATAUWITAN</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <a href="home.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-home"></i></span>
+                    Home
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Menu</div>
+                <a href="#" class="nav-item active">
+                    <span class="icon"><i class="fas fa-chart-bar"></i></span>
+                    Dashboard Data
+                </a>
+                <a href="insight.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-lightbulb"></i></span>
+                    Insight
+                </a>
+                <a href="payment.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-credit-card"></i></span>
+                    Payment
+                </a>
+            </div>
+        </nav>
+        
+        <div class="sidebar-user">
+            <div class="user-info">
+                <div class="user-avatar">DU</div>
+                <div class="user-details">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-action">Sign out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="breadcrumb">
+                    <a href="dashboard.html">Home</a>
+                    <span class="separator">/</span>
+                    <span class="current">Dashboard Data</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="search-box">
+                    <span class="search-icon">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input type="text" class="search-input" placeholder="Search">
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <h1 class="page-title">Dashboard Data</h1>
+            <p class="page-subtitle">Analisis data penjualan dan persebaran customer</p>
+            
+            <!-- Filters -->
+            <div class="filters-section">
+                <h2 class="section-title">Filter Data</h2>
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Tanggal Mulai</label>
+                        <input type="date" class="filter-input" id="startDate">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Tanggal Akhir</label>
+                        <input type="date" class="filter-input" id="endDate">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Produk</label>
+                        <select class="filter-input" id="productFilter">
+                            <option value="">Semua Produk</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Smartphone">Smartphone</option>
+                            <option value="Tablet">Tablet</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">Kota</label>
+                        <select class="filter-input" id="cityFilter">
+                            <option value="">Semua Kota</option>
+                            <option value="Jakarta">Jakarta</option>
+                            <option value="Surabaya">Surabaya</option>
+                            <option value="Bandung">Bandung</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Metrics Cards -->
+            <div class="metrics-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Total Sales</div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #134e4a, #059669);">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">Rp 2.4B</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +12.5% dari bulan lalu
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">This Year Sales</div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #7c3aed, #a855f7);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">Rp 18.7B</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +8.2% dari tahun lalu
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Avg Transaction/Customer</div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #dc2626, #ef4444);">
+                                <i class="fas fa-user-tag"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">Rp 3.2M</div>
+                        <div class="metric-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            +5.8% dari bulan lalu
+                        </div>
+                    </div>
+
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-title">Avg Units/Customer</div>
+                            <div class="metric-icon" style="background: linear-gradient(135deg, #ea580c, #f97316);">
+                                <i class="fas fa-boxes"></i>
+                            </div>
+                        </div>
+                        <div class="metric-value">2.4</div>
+                        <div class="metric-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            -1.2% dari bulan lalu
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Section -->
+            <div class="map-section">
+                <div class="map-header">
+                    <h2 class="section-title">Peta Sebaran Customer</h2>
+                    <div class="map-controls">
+                        <button class="btn btn-secondary" id="fullscreenBtn">
+                            <i class="fas fa-expand"></i>
+                            Fullscreen
+                        </button>
+                    </div>
+                </div>
+                <div id="mapContainer" class="map-container">
+                    <div id="mapChart" style="height: 100%; width: 100%;"></div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts-grid">
+                <!-- Line Chart -->
+                <div class="chart-card">
+                    <h3 class="chart-title">Total Penjualan per Bulan</h3>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Bar Chart -->
+                <div class="chart-card">
+                    <h3 class="chart-title">Produk Terlaris</h3>
+                    <div class="chart-container">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Pie Chart -->
+                <div class="chart-card">
+                    <h3 class="chart-title">Kota Terbanyak Pembelian</h3>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Table -->
+            <div class="table-section">
+                <h2 class="section-title">Data Penjualan</h2>
+                <div class="table-container">
+                    <table class="data-table" id="dataTable">
+                        <thead>
+                            <tr>
+                                <th>BLN</th>
+                                <th>TGL</th>
+                                <th>NO</th>
+                                <th>NAMA</th>
+                                <th>NO. HP</th>
+                                <th>EMAIL</th>
+                                <th>ALAMAT</th>
+                                <th>KOTA</th>
+                                <th>PRODUK</th>
+                                <th>QTY</th>
+                                <th>TOTAL PEMBELIAN</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td>Jan</td>
+                                <td>2024-01-15</td>
+                                <td>001</td>
+                                <td>Ahmad Pratama</td>
+                                <td>081234567890</td>
+                                <td>ahmad@email.com</td>
+                                <td>Jl. Sudirman No.1</td>
+                                <td>Jakarta</td>
+                                <td>Laptop</td>
+                                <td>1</td>
+                                <td>Rp 15,000,000</td>
+                            </tr>
+                            <tr>
+                                <td>Jan</td>
+                                <td>2024-01-18</td>
+                                <td>002</td>
+                                <td>Siti Nurhaliza</td>
+                                <td>081234567891</td>
+                                <td>siti@email.com</td>
+                                <td>Jl. Thamrin No.5</td>
+                                <td>Jakarta</td>
+                                <td>Smartphone</td>
+                                <td>2</td>
+                                <td>Rp 12,000,000</td>
+                            </tr>
+                            <tr>
+                                <td>Feb</td>
+                                <td>2024-02-03</td>
+                                <td>003</td>
+                                <td>Budi Santoso</td>
+                                <td>081234567892</td>
+                                <td>budi@email.com</td>
+                                <td>Jl. Malioboro No.10</td>
+                                <td>Yogyakarta</td>
+                                <td>Tablet</td>
+                                <td>1</td>
+                                <td>Rp 8,000,000</td>
+                            </tr>
+                            <tr>
+                                <td>Feb</td>
+                                <td>2024-02-12</td>
+                                <td>004</td>
+                                <td>Dewi Sartika</td>
+                                <td>081234567893</td>
+                                <td>dewi@email.com</td>
+                                <td>Jl. Dago No.25</td>
+                                <td>Bandung</td>
+                                <td>Laptop</td>
+                                <td>1</td>
+                                <td>Rp 18,000,000</td>
+                            </tr>
+                            <tr>
+                                <td>Mar</td>
+                                <td>2024-03-08</td>
+                                <td>005</td>
+                                <td>Rudi Hermawan</td>
+                                <td>081234567894</td>
+                                <td>rudi@email.com</td>
+                                <td>Jl. Pemuda No.15</td>
+                                <td>Surabaya</td>
+                                <td>Smartphone</td>
+                                <td>3</td>
+                                <td>Rp 18,000,000</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Upload History -->
+            <div class="history-section">
+                <div class="history-header">
+                    <h2 class="section-title">Riwayat Upload File</h2>
+                    <button class="btn btn-primary" id="uploadDataBtn">
+                        <i class="fas fa-upload"></i>
+                        Upload Data
+                    </button>
+                </div>
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-filename">data_penjualan_januari.xlsx</div>
+                        <div class="history-details">Upload: 15 Jan 2024, 14:30 | Size: 2.3 MB | Records: 1,250</div>
+                    </div>
+                    <div class="history-status status-success">Berhasil</div>
+                </div>
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-filename">data_penjualan_februari.xlsx</div>
+                        <div class="history-details">Upload: 28 Feb 2024, 09:15 | Size: 1.8 MB | Records: 980</div>
+                    </div>
+                    <div class="history-status status-success">Berhasil</div>
+                </div>
+                <div class="history-item">
+                    <div class="history-info">
+                        <div class="history-filename">data_penjualan_maret.xlsx</div>
+                        <div class="history-details">Upload: 5 Mar 2024, 16:45 | Size: 3.1 MB | Records: 1,540</div>
+                    </div>
+                    <div class="history-status status-processing">Processing</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" id="modalClose">&times;</span>
+            <h2 class="modal-title">Upload Data</h2>
+            <p class="modal-subtitle">Pilih salah satu opsi untuk memulai upload data</p>
+            
+            <div class="modal-options">
+                <div class="option-card" id="downloadSampleOption">
+                    <div class="option-title">
+                        <i class="fas fa-download"></i>
+                        Download Sample File
+                    </div>
+                    <div class="option-description">
+                        Download template Excel untuk melihat format data yang diperlukan
+                    </div>
+                </div>
+                
+                <div class="option-card" id="uploadFileOption">
+                    <div class="option-title">
+                        <i class="fas fa-file-upload"></i>
+                        Upload File Excel
+                    </div>
+                    <div class="option-description">
+                        Upload file Excel dengan data penjualan Anda (.xlsx, .xls - Max: 10MB)
+                    </div>
+                </div>
+            </div>
+            
+            <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls">
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let isFullscreen = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Charts
+            initLineChart();
+            initBarChart();
+            initPieChart();
+            initCustomerMap();
+            
+            // Modal functionality
+            const uploadModal = document.getElementById('uploadModal');
+            const uploadBtn = document.getElementById('uploadDataBtn');
+            const modalClose = document.getElementById('modalClose');
+            const downloadSampleOption = document.getElementById('downloadSampleOption');
+            const uploadFileOption = document.getElementById('uploadFileOption');
+            const fileInput = document.getElementById('fileInput');
+            
+            uploadBtn.addEventListener('click', function() {
+                uploadModal.style.display = 'block';
+            });
+            
+            modalClose.addEventListener('click', function() {
+                uploadModal.style.display = 'none';
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (e.target === uploadModal) {
+                    uploadModal.style.display = 'none';
+                }
+            });
+            
+            downloadSampleOption.addEventListener('click', function() {
+                downloadSampleFile();
+                uploadModal.style.display = 'none';
+            });
+            
+            uploadFileOption.addEventListener('click', function() {
+                fileInput.click();
+                uploadModal.style.display = 'none';
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileUpload(e.target.files[0]);
+                }
+            });
+            
+            // Fullscreen functionality
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            fullscreenBtn.addEventListener('click', toggleFullscreen);
+            
+            // Filter Event Listeners
+            document.getElementById('startDate').addEventListener('change', applyFilters);
+            document.getElementById('endDate').addEventListener('change', applyFilters);
+            document.getElementById('productFilter').addEventListener('change', applyFilters);
+            document.getElementById('cityFilter').addEventListener('change', applyFilters);
+            
+            // Navigation
+            document.querySelector('.user-action').addEventListener('click', function() {
+                if (confirm('Apakah Anda yakin ingin keluar?')) {
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+
+        // Customer Map with detailed locations
+        function initCustomerMap() {
+            map = L.map('mapChart', {
+                scrollWheelZoom: true,
+                dragging: true,
+                zoomControl: true
+            }).setView([-2.5, 118], 5);
+            
+            // White minimalist map
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CARTO',
+                subdomains: 'abcd',
+                maxZoom: 18
+            }).addTo(map);
+            
+            // Detailed customer data with village/district level
+            const customerData = [
+                // Jakarta Area
+                { name: 'Ahmad Sutrisno', address: 'Desa Rawa Belong, Kec. Kebon Jeruk', lat: -6.1951, lng: 106.7662, amount: 850000, product: 'Smartphone' },
+                { name: 'Siti Aminah', address: 'Kelurahan Menteng, Jakarta Pusat', lat: -6.1944, lng: 106.8294, amount: 2500000, product: 'Laptop' },
+                { name: 'Budi Hartono', address: 'Desa Cipete, Kec. Cilandak', lat: -6.2671, lng: 106.8065, amount: 6200000, product: 'Gaming Setup' },
+                { name: 'Dewi Sartika', address: 'Kelurahan Cempaka Putih, Jakarta Pusat', lat: -6.1751, lng: 106.8650, amount: 1200000, product: 'Tablet' },
+                { name: 'Eko Prasetyo', address: 'Desa Pasar Minggu, Jakarta Selatan', lat: -6.2854, lng: 106.8425, amount: 4500000, product: 'Workstation' },
+                
+                // Surabaya Area
+                { name: 'Indira Putri', address: 'Desa Wonokromo, Surabaya', lat: -7.2819, lng: 112.7319, amount: 750000, product: 'Headphone' },
+                { name: 'Joko Widodo', address: 'Kelurahan Gubeng, Surabaya', lat: -7.2653, lng: 112.7519, amount: 3200000, product: 'MacBook' },
+                { name: 'Kartika Sari', address: 'Desa Rungkut, Kec. Rungkut', lat: -7.3147, lng: 112.7906, amount: 1800000, product: 'Monitor' },
+                { name: 'Lutfi Rahman', address: 'Kelurahan Semampir, Surabaya', lat: -7.2297, lng: 112.7478, amount: 950000, product: 'Keyboard' },
+                
+                // Bandung Area  
+                { name: 'Maria Gonzales', address: 'Desa Ciumbuleuit, Kec. Cidadap', lat: -6.8715, lng: 107.6162, amount: 5800000, product: 'iMac' },
+                { name: 'Nur Hidayah', address: 'Kelurahan Dago, Bandung', lat: -6.8951, lng: 107.6191, amount: 2100000, product: 'Surface Pro' },
+                { name: 'Omar Abdullah', address: 'Desa Cihampelas, Kec. Cihampelas', lat: -6.9347, lng: 107.5847, amount: 780000, product: 'Mouse Gaming' },
+                { name: 'Putri Indah', address: 'Kelurahan Buah Batu, Bandung', lat: -6.9734, lng: 107.6344, amount: 1450000, product: 'Webcam' },
+                
+                // Yogyakarta Area
+                { name: 'Qori Maula', address: 'Desa Mantrijeron, Yogyakarta', lat: -7.8134, lng: 110.3647, amount: 650000, product: 'Speaker' },
+                { name: 'Rizki Pratama', address: 'Kelurahan Malioboro, Yogyakarta', lat: -7.7956, lng: 110.3695, amount: 3800000, product: 'Gaming Laptop' },
+                { name: 'Sari Dewi', address: 'Desa Kotagede, Kec. Kotagede', lat: -7.8275, lng: 110.3889, amount: 1100000, product: 'Printer' },
+                
+                // Medan Area
+                { name: 'Tono Suprapto', address: 'Desa Medan Helvetia, Medan', lat: 3.6134, lng: 98.6400, amount: 890000, product: 'Smartphone' },
+                { name: 'Uci Sanusi', address: 'Kelurahan Medan Petisah, Medan', lat: 3.5890, lng: 98.6738, amount: 2700000, product: 'Laptop Dell' },
+                { name: 'Vina Marlina', address: 'Desa Medan Johor, Medan', lat: 3.5519, lng: 98.7100, amount: 4200000, product: 'Workstation HP' },
+                
+                // Semarang Area
+                { name: 'Wahyu Nugroho', address: 'Desa Tembalang, Kec. Tembalang', lat: -7.0514, lng: 110.4381, amount: 1600000, product: 'Monitor 4K' },
+                { name: 'Xenia Putri', address: 'Kelurahan Simpang Lima, Semarang', lat: -6.9932, lng: 110.4203, amount: 520000, product: 'Mouse' },
+                
+                // Makassar Area
+                { name: 'Yusuf Ibrahim', address: 'Desa Rappocini, Makassar', lat: -5.1477, lng: 119.4590, amount: 3400000, product: 'MacBook Air' },
+                { name: 'Zahra Aini', address: 'Kelurahan Panakkukang, Makassar', lat: -5.1352, lng: 119.4823, amount: 850000, product: 'Tablet Samsung' },
+                
+                // Malang Area
+                { name: 'Ari Wibowo', address: 'Desa Lowokwaru, Kec. Lowokwaru', lat: -7.9445, lng: 112.6162, amount: 2200000, product: 'Gaming Chair' },
+                { name: 'Bella Safitri', address: 'Kelurahan Klojen, Malang', lat: -7.9666, lng: 112.6326, amount: 750000, product: 'Webcam HD' },
+                
+                // Palembang Area
+                { name: 'Candra Wijaya', address: 'Desa Plaju, Palembang', lat: -2.9761, lng: 104.7753, amount: 1350000, product: 'SSD External' },
+                { name: 'Diah Permata', address: 'Kelurahan Ilir Timur, Palembang', lat: -2.9886, lng: 104.7628, amount: 4800000, product: 'PC Gaming' },
+                
+                // Balikpapan Area
+                { name: 'Eko Susanto', address: 'Desa Sepinggan, Balikpapan', lat: -1.2379, lng: 116.8529, amount: 980000, product: 'Keyboard Mechanical' },
+                { name: 'Fitri Handayani', address: 'Kelurahan Klandasan Ulu, Balikpapan', lat: -1.2675, lng: 116.8289, amount: 5500000, product: 'Laptop Asus ROG' }
+            ];
+            
+            // Add markers based on transaction amount
+            customerData.forEach(customer => {
+                let markerColor, markerSize;
+                
+                // Determine color and size based on amount
+                if (customer.amount < 1000000) {
+                    markerColor = 'marker-yellow';
+                    markerSize = 12;
+                } else if (customer.amount <= 5000000) {
+                    markerColor = 'marker-orange';
+                    markerSize = 16;
+                } else {
+                    markerColor = 'marker-green';
+                    markerSize = 20;
+                }
+                
+                const customIcon = L.divIcon({
+                    className: `customer-marker ${markerColor}`,
+                    html: `<div style="width: ${markerSize}px; height: ${markerSize}px;" class="customer-marker ${markerColor}"></div>`,
+                    iconSize: [markerSize, markerSize],
+                    iconAnchor: [markerSize/2, markerSize/2]
+                });
+                
+                const marker = L.marker([customer.lat, customer.lng], { icon: customIcon })
+                    .bindPopup(`
+                        <div style="padding: 12px; min-width: 200px;">
+                            <h4 style="margin: 0 0 8px 0; color: #134e4a; font-weight: 600;">${customer.name}</h4>
+                            <div style="margin-bottom: 8px; font-size: 12px; color: #6b7280;">
+                                <i class="fas fa-map-marker-alt"></i> ${customer.address}
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                                <div>
+                                    <div style="color: #6b7280;">Produk:</div>
+                                    <div style="font-weight: 600; color: #1f2937;">${customer.product}</div>
+                                </div>
+                                <div>
+                                    <div style="color: #6b7280;">Total:</div>
+                                    <div style="font-weight: 600; color: #134e4a;">Rp ${customer.amount.toLocaleString()}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `)
+                    .addTo(map);
+            });
+            
+            // Add legend
+            const legend = L.control({ position: 'bottomright' });
+            legend.onAdd = function(map) {
+                const div = L.DomUtil.create('div', 'info legend');
+                div.innerHTML = `
+                    <div style="background: rgba(255, 255, 255, 0.95); padding: 16px; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); font-size: 12px;">
+                        <h4 style="margin: 0 0 12px 0; color: #134e4a; font-weight: 600;">Kategori Transaksi</h4>
+                        <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                            <div style="width: 12px; height: 12px; background: #fbbf24; border-radius: 50%; margin-right: 8px;"></div>
+                            <span>< Rp 1 Juta</span>
+                        </div>
+                        <div style="display: flex; align-items: center; margin-bottom: 6px;">
+                            <div style="width: 16px; height: 16px; background: #f97316; border-radius: 50%; margin-right: 8px;"></div>
+                            <span>Rp 1-5 Juta</span>
+                        </div>
+                        <div style="display: flex; align-items: center;">
+                            <div style="width: 20px; height: 20px; background: #10b981; border-radius: 50%; margin-right: 8px;"></div>
+                            <span>> Rp 5 Juta</span>
+                        </div>
+                    </div>
+                `;
+                return div;
+            };
+            legend.addTo(map);
+        }
+
+        function toggleFullscreen() {
+            const mapContainer = document.getElementById('mapContainer');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            
+            if (!isFullscreen) {
+                // Enter fullscreen
+                mapContainer.classList.add('map-fullscreen');
+                mapContainer.innerHTML = `
+                    <div class="fullscreen-header">
+                        <h3>Peta Sebaran Customer - Fullscreen</h3>
+                        <button class="btn btn-secondary" onclick="toggleFullscreen()">
+                            <i class="fas fa-compress"></i>
+                            Exit Fullscreen
+                        </button>
+                    </div>
+                    <div id="mapChart" style="height: calc(100vh - 80px); width: 100%;"></div>
+                `;
+                
+                // Reinitialize map in fullscreen
+                setTimeout(() => {
+                    initCustomerMap();
+                }, 100);
+                
+                isFullscreen = true;
+            } else {
+                // Exit fullscreen
+                mapContainer.classList.remove('map-fullscreen');
+                mapContainer.innerHTML = `<div id="mapChart" style="height: 100%; width: 100%;"></div>`;
+                
+                // Reinitialize map in normal view
+                setTimeout(() => {
+                    initCustomerMap();
+                }, 100);
+                
+                isFullscreen = false;
+            }
+        }
+        
+        // Chart Initialization Functions
+        function initLineChart() {
+            const ctx = document.getElementById('lineChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [{
+                        label: 'Total Penjualan (Juta Rupiah)',
+                        data: [65, 45, 78, 52, 89, 67],
+                        borderColor: '#134e4a',
+                        backgroundColor: 'rgba(19, 78, 74, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initBarChart() {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Laptop', 'Smartphone', 'Tablet', 'Monitor', 'Keyboard'],
+                    datasets: [{
+                        label: 'Jumlah Terjual',
+                        data: [120, 89, 67, 45, 32],
+                        backgroundColor: [
+                            '#134e4a',
+                            '#059669',
+                            '#10b981',
+                            '#34d399',
+                            '#6ee7b7'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function initPieChart() {
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Jakarta', 'Surabaya', 'Bandung', 'Yogyakarta', 'Medan'],
+                    datasets: [{
+                        data: [35, 25, 20, 12, 8],
+                        backgroundColor: [
+                            '#134e4a',
+                            '#059669',
+                            '#10b981',
+                            '#34d399',
+                            '#6ee7b7'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // File Upload Handler
+        function handleFileUpload(file) {
+            if (!file.name.match(/\.(xlsx|xls)$/)) {
+                alert('Please select a valid Excel file (.xlsx or .xls)');
+                return;
+            }
+            
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                return;
+            }
+            
+            // Simulate upload process
+            const newItem = document.createElement('div');
+            newItem.className = 'history-item';
+            newItem.innerHTML = `
+                <div class="history-info">
+                    <div class="history-filename">${file.name}</div>
+                    <div class="history-details">Upload: ${new Date().toLocaleDateString('id-ID')} | Size: ${(file.size / (1024*1024)).toFixed(1)} MB | Processing...</div>
+                </div>
+                <div class="history-status status-processing">Processing</div>
+            `;
+            
+            const historySection = document.querySelector('.history-section');
+            const firstItem = historySection.querySelector('.history-item');
+            historySection.insertBefore(newItem, firstItem);
+            
+            // Simulate processing completion
+            setTimeout(() => {
+                const statusElement = newItem.querySelector('.history-status');
+                const detailsElement = newItem.querySelector('.history-details');
+                statusElement.textContent = 'Berhasil';
+                statusElement.className = 'history-status status-success';
+                detailsElement.textContent = `Upload: ${new Date().toLocaleDateString('id-ID')} | Size: ${(file.size / (1024*1024)).toFixed(1)} MB | Records: ${Math.floor(Math.random() * 1000 + 500)}`;
+            }, 3000);
+        }
+        
+        // Download Sample File
+        function downloadSampleFile() {
+            const sampleData = [
+                ['BLN', 'TGL', 'NO', 'NAMA', 'NO. HP', 'EMAIL', 'ALAMAT', 'KOTA', 'PRODUK', 'QTY', 'TOTAL PEMBELIAN'],
+                ['Jan', '2024-01-15', '001', 'Ahmad Pratama', '081234567890', 'ahmad@email.com', 'Jl. Sudirman No.1', 'Jakarta', 'Laptop', '1', '15000000'],
+                ['Jan', '2024-01-18', '002', 'Siti Nurhaliza', '081234567891', 'siti@email.com', 'Jl. Thamrin No.5', 'Jakarta', 'Smartphone', '2', '12000000'],
+                ['Feb', '2024-02-03', '003', 'Budi Santoso', '081234567892', 'budi@email.com', 'Jl. Malioboro No.10', 'Yogyakarta', 'Tablet', '1', '8000000']
+            ];
+            
+            const csvContent = sampleData.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sample_data_penjualan.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        // Apply Filters
+        function applyFilters() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            const product = document.getElementById('productFilter').value;
+            const city = document.getElementById('cityFilter').value;
+            
+            console.log('Applying filters:', { startDate, endDate, product, city });
+            
+            // Filter table data
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                let show = true;
+                const cells = row.querySelectorAll('td');
+                
+                if (startDate || endDate) {
+                    const rowDate = cells[1].textContent;
+                    if (startDate && rowDate < startDate) show = false;
+                    if (endDate && rowDate > endDate) show = false;
+                }
+                
+                if (product && cells[8].textContent !== product) {
+                    show = false;
+                }
+                
+                if (city && cells[7].textContent !== city) {
+                    show = false;
+                }
+                
+                row.style.display = show ? '' : 'none';
+            });
+        }
+        
+        // Mobile Menu Toggle
+        if (window.innerWidth <= 1024) {
+            const menuToggle = document.createElement('button');
+            menuToggle.innerHTML = '☰';
+            menuToggle.style.cssText = `
+                position: fixed;
+                top: 16px;
+                left: 16px;
+                z-index: 1001;
+                background: white;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                padding: 8px 12px;
+                cursor: pointer;
+                font-size: 16px;
+                transition: all 0.2s ease;
+            `;
+            
+            document.body.appendChild(menuToggle);
+            
+            menuToggle.addEventListener('click', function() {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+        }
+    </script>
+</body>
+</html>

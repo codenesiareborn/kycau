@@ -1,0 +1,1353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insight - DATAUWITAN</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .sidebar-logo {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .sidebar-nav {
+            padding: 20px 0;
+        }
+
+        .nav-section {
+            margin-bottom: 32px;
+        }
+
+        .nav-section-title {
+            padding: 0 20px 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 12px 20px;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+            position: relative;
+        }
+
+        .nav-item:hover {
+            background: #f9fafb;
+            color: #374151;
+        }
+
+        .nav-item.active {
+            background: #d1fae5;
+            color: #134e4a;
+            border-left-color: #134e4a;
+        }
+
+        .nav-item .icon {
+            display: inline-block;
+            width: 20px;
+            margin-right: 12px;
+            text-align: center;
+        }
+
+        .sidebar-user {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #374151;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .user-action {
+            font-size: 12px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+
+        .user-action:hover {
+            color: #374151;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: #6b7280;
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            color: #374151;
+        }
+
+        .breadcrumb .separator {
+            color: #d1d5db;
+        }
+
+        .breadcrumb .current {
+            color: #1f2937;
+            font-weight: 500;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-input {
+            width: 300px;
+            padding: 8px 16px 8px 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f9fafb;
+            transition: all 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #134e4a;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(19, 78, 74, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #9ca3af;
+            font-size: 16px;
+        }
+
+        /* Page Content */
+        .page-content {
+            padding: 32px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 32px;
+        }
+
+        /* Insight Summary Cards */
+        .insight-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .insight-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .insight-card:hover {
+            border-color: #134e4a;
+            box-shadow: 0 4px 6px -1px rgba(19, 78, 74, 0.1);
+        }
+
+        .insight-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .insight-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            background: #d1fae5;
+            color: #134e4a;
+        }
+
+        .insight-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .insight-content {
+            line-height: 1.6;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .insight-highlights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .highlight-tag {
+            background: #ecfdf5;
+            color: #059669;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Recommendations Section */
+        .recommendations-section {
+            background: linear-gradient(135deg, #134e4a 0%, #0f2419 100%);
+            border-radius: 12px;
+            padding: 32px;
+            color: white;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recommendations-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .recommendations-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .recommendations-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .recommendations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .recommendation-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .recommendation-category {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6ee7b7;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-text {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.9;
+        }
+
+        /* Insight History */
+        .history-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+
+        .history-item {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .history-item:hover {
+            border-color: #134e4a;
+            background: #f0fdfa;
+        }
+
+        .history-icon {
+            width: 40px;
+            height: 40px;
+            background: #d1fae5;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #134e4a;
+            flex-shrink: 0;
+        }
+
+        .history-content {
+            flex: 1;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .history-filename {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .history-summary {
+            font-size: 14px;
+            color: #374151;
+            line-height: 1.5;
+            margin-bottom: 12px;
+        }
+
+        .history-insights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .history-tag {
+            background: #f3f4f6;
+            color: #4b5563;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .view-details-btn {
+            background: #134e4a;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .view-details-btn:hover {
+            background: #0f2419;
+        }
+
+        /* Loading State */
+        .loading-insight {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 32px;
+        }
+
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid #e5e7eb;
+            border-top: 4px solid #134e4a;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        .loading-text {
+            color: #6b7280;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            color: #9ca3af;
+            font-size: 14px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .header {
+                padding: 16px;
+            }
+            
+            .search-input {
+                width: 200px;
+            }
+            
+            .page-content {
+                padding: 20px;
+            }
+            
+            .insight-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .recommendations-list {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-input {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">DATAUWITAN</div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <a href="home.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-home"></i></span>
+                    Home
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Menu</div>
+                <a href="dashboarddata.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-chart-bar"></i></span>
+                    Dashboard Data
+                </a>
+                <a href="#" class="nav-item active">
+                    <span class="icon"><i class="fas fa-lightbulb"></i></span>
+                    Insight
+                </a>
+                <a href="payment.html" class="nav-item">
+                    <span class="icon"><i class="fas fa-credit-card"></i></span>
+                    Payment
+                </a>
+            </div>
+        </nav>
+        
+        <div class="sidebar-user">
+            <div class="user-info">
+                <div class="user-avatar">DU</div>
+                <div class="user-details">
+                    <div class="user-name">Demo User</div>
+                    <div class="user-action">Sign out</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="breadcrumb">
+                    <a href="home.html">Home</a>
+                    <span class="separator">/</span>
+                    <span class="current">Insight</span>
+                </div>
+            </div>
+            
+            <div class="header-right">
+                <div class="search-box">
+                    <span class="search-icon">
+                        <span class="search-icon">
+    <i class="fas fa-search"></i>
+</span>
+                    </span>
+                    <input type="text" class="search-input" placeholder="Search insights">
+                </div>
+            </div>
+        </header>
+        
+        <!-- Page Content -->
+        <main class="page-content">
+            <h1 class="page-title">Data Insights</h1>
+            <p class="page-subtitle">Analisis mendalam dan rekomendasi berdasarkan data penjualan Anda</p>
+            
+            <!-- Loading State (will be hidden after data loads) -->
+            <div class="loading-insight" id="loadingState" style="display: none;">
+                <div class="loading-spinner"></div>
+                <div class="loading-text">Menganalisis Data...</div>
+                <div class="loading-subtext">Mohon tunggu, kami sedang memproses insight dari data terbaru</div>
+            </div>
+            
+            <!-- Insight Summary -->
+            <div class="insight-grid" id="insightGrid">
+                <!-- Penjualan Insight -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <div class="insight-icon"><i class="fas fa-chart-line"></i></div>
+                        <div class="insight-title">Performa Penjualan</div>
+                    </div>
+                    <div class="insight-content">
+                        Penjualan menunjukkan tren positif dengan <strong>peningkatan 23%</strong> dari bulan sebelumnya. 
+                        <strong>Jakarta</strong> tetap menjadi pasar terbesar dengan kontribusi <strong>35%</strong> dari total penjualan.
+                        Produk <strong>Laptop</strong> mendominasi dengan 120 unit terjual.
+                    </div>
+                    <div class="insight-highlights">
+                        <span class="highlight-tag">Jakarta 35%</span>
+                        <span class="highlight-tag">Laptop #1</span>
+                        <span class="highlight-tag">Growth +23%</span>
+                    </div>
+                </div>
+                
+                <!-- Customer Insight -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <div class="insight-icon"><i class="fas fa-users"></i></div>
+                        <div class="insight-title">Analisis Customer</div>
+                    </div>
+                    <div class="insight-content">
+                        Terdapat <strong>15 repeat customers</strong> dengan rata-rata pembelian ulang dalam <strong>2.3 bulan</strong>. 
+                        Customer <strong>Ahmad Pratama</strong> dan <strong>Siti Nurhaliza</strong> merupakan pembeli terbesar dengan 
+                        total transaksi di atas <strong>Rp 15 juta</strong>.
+                    </div>
+                    <div class="insight-highlights">
+                        <span class="highlight-tag">15 Repeat</span>
+                        <span class="highlight-tag">2.3 Bulan Cycle</span>
+                        <span class="highlight-tag">15M+ Value</span>
+                    </div>
+                </div>
+                
+                <!-- Product Insight -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <div class="insight-icon"><i class="fas fa-shopping-cart"></i></div>
+                        <div class="insight-title">Produk Terlaris</div>
+                    </div>
+                    <div class="insight-content">
+                        <strong>Laptop</strong> menjadi produk unggulan dengan margin keuntungan tertinggi. 
+                        <strong>Smartphone</strong> menunjukkan potensi besar di segmen repeat purchase, 
+                        sementara <strong>Tablet</strong> lebih populer di kota-kota kecil seperti Yogyakarta.
+                    </div>
+                    <div class="insight-highlights">
+                        <span class="highlight-tag">Laptop Lead</span>
+                        <span class="highlight-tag">Smartphone Growth</span>
+                        <span class="highlight-tag">Tablet Niche</span>
+                    </div>
+                </div>
+                
+                <!-- Trend Insight -->
+                <div class="insight-card">
+                    <div class="insight-header">
+                        <div class="insight-icon"><i class="fas fa-chart-area"></i></div>
+                        <div class="insight-title">Tren & Pola</div>
+                    </div>
+                    <div class="insight-content">
+                        Penjualan cenderung meningkat di <strong>awal bulan (1-10)</strong> dan <strong>akhir bulan (25-30)</strong>. 
+                        Hari <strong>Selasa dan Kamis</strong> menunjukkan konversi tertinggi. 
+                        Terdapat korelasi positif antara penjualan laptop dan lokasi perkotaan.
+                    </div>
+                    <div class="insight-highlights">
+                        <span class="highlight-tag">Peak 1-10, 25-30</span>
+                        <span class="highlight-tag">Sel-Kam Optimal</span>
+                        <span class="highlight-tag">Urban Laptop</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recommendations Section -->
+            <div class="recommendations-section">
+                <div class="recommendations-content">
+                    <h2 class="recommendations-title">
+                        <i class="fas fa-lightbulb"></i> Rekomendasi Strategis
+                    </h2>
+                    <div class="recommendations-list">
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">MARKETING</div>
+                            <div class="recommendation-text">
+                                Fokuskan campaign marketing di Jakarta dan Surabaya untuk memaksimalkan ROI. 
+                                Pertimbangkan bundling laptop dengan accessories untuk meningkatkan average order value.
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">INVENTORY</div>
+                            <div class="recommendation-text">
+                                Tingkatkan stok laptop menjelang awal dan akhir bulan. 
+                                Optimalkan distribusi smartphone di kota-kota tier 2 untuk ekspansi pasar.
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">CUSTOMER RETENTION</div>
+                            <div class="recommendation-text">
+                                Buat program loyalty untuk repeat customers dengan cycle 2-3 bulan. 
+                                Kirim reminder pembelian setelah 60 hari untuk meningkatkan retention rate.
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">PRICING STRATEGY</div>
+                            <div class="recommendation-text">
+                                Evaluasi harga tablet untuk meningkatkan daya saing di pasar Yogyakarta. 
+                                Pertimbangkan premium pricing untuk laptop di segment enterprise Jakarta.
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">OPERATIONAL</div>
+                            <div class="recommendation-text">
+                                Optimalkan operasional untuk peak days (Selasa-Kamis). 
+                                Siapkan fast delivery untuk Jakarta dan Surabaya sebagai competitive advantage.
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">GROWTH OPPORTUNITY</div>
+                            <div class="recommendation-text">
+                                Eksplorasi pasar Medan dan Bandung yang menunjukkan potensi pertumbuhan. 
+                                Kembangkan strategi khusus untuk segment B2B dengan focus pada bulk order laptop.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Insight History -->
+            <div class="history-section">
+                <h2 class="section-title">Riwayat Insight</h2>
+                
+                <div class="history-item">
+                    <div class="history-icon"><i class="fas fa-file-excel"></i></div>
+                    <div class="history-content">
+                        <div class="history-header">
+                            <div class="history-filename">data_penjualan_maret.xlsx</div>
+                            <div class="history-date">5 Mar 2024, 16:45</div>
+                        </div>
+                        <div class="history-summary">
+                            Analisis data Maret menunjukkan pertumbuhan signifikan 28% dengan dominasi laptop di Jakarta. 
+                            Ditemukan 18 repeat customers dengan cycle pembelian rata-rata 2.1 bulan.
+                        </div>
+                        <div class="history-insights">
+                            <span class="history-tag">Growth +28%</span>
+                            <span class="history-tag">Jakarta 38%</span>
+                            <span class="history-tag">18 Repeat</span>
+                            <span class="history-tag">Laptop Lead</span>
+                            <span class="history-tag">2.1M Cycle</span>
+                        </div>
+                        <button class="view-details-btn" onclick="showInsightDetails('maret')">
+                            Lihat Detail
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="history-item">
+                    <div class="history-icon"><i class="fas fa-file-excel"></i></div>
+                    <div class="history-content">
+                        <div class="history-header">
+                            <div class="history-filename">data_penjualan_februari.xlsx</div>
+                            <div class="history-date">28 Feb 2024, 09:15</div>
+                        </div>
+                        <div class="history-summary">
+                            Data Februari mengungkap shift preferensi ke smartphone di Surabaya. 
+                            Customer retention meningkat 15% dengan introduction program loyalty baru.
+                        </div>
+                        <div class="history-insights">
+                            <span class="history-tag">Smartphone Rise</span>
+                            <span class="history-tag">Surabaya 28%</span>
+                            <span class="history-tag">Retention +15%</span>
+                            <span class="history-tag">Loyalty Program</span>
+                        </div>
+                        <button class="view-details-btn" onclick="showInsightDetails('februari')">
+                            Lihat Detail
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="history-item">
+                    <div class="history-icon"><i class="fas fa-file-excel"></i></div>
+                    <div class="history-content">
+                        <div class="history-header">
+                            <div class="history-filename">data_penjualan_januari.xlsx</div>
+                            <div class="history-date">15 Jan 2024, 14:30</div>
+                        </div>
+                        <div class="history-summary">
+                            Baseline analysis Januari menunjukkan potensi besar laptop premium di Jakarta. 
+                            Identified early adopters dan high-value customers untuk targeting campaign Q2.
+                        </div>
+                        <div class="history-insights">
+                            <span class="history-tag">Laptop Premium</span>
+                            <span class="history-tag">Jakarta Focus</span>
+                            <span class="history-tag">Early Adopters</span>
+                            <span class="history-tag">High Value</span>
+                        </div>
+                        <button class="view-details-btn" onclick="showInsightDetails('januari')">
+                            Lihat Detail
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simulate loading state when generating new insights
+            const loadingState = document.getElementById('loadingState');
+            const insightGrid = document.getElementById('insightGrid');
+            
+            // Show loading when user uploads new data (triggered from dashboard)
+            if (sessionStorage.getItem('newDataUploaded')) {
+                showLoadingInsight();
+                sessionStorage.removeItem('newDataUploaded');
+            }
+            
+            // Navigation and user interactions
+            setupNavigation();
+            setupSearchFunctionality();
+            
+            // Auto-refresh insights every 30 seconds (for demo)
+            // setInterval(refreshInsights, 30000);
+        });
+        
+        function showLoadingInsight() {
+            const loadingState = document.getElementById('loadingState');
+            const insightGrid = document.getElementById('insightGrid');
+            
+            loadingState.style.display = 'flex';
+            insightGrid.style.display = 'none';
+            
+            // Simulate processing time
+            setTimeout(() => {
+                loadingState.style.display = 'none';
+                insightGrid.style.display = 'grid';
+                
+                // Show success notification
+                showNotification('<i class="fas fa-check-circle"></i> Insight baru berhasil digenerate!', 'success');
+                
+                // Update with new insights
+                updateLatestInsights();
+            }, 4000);
+        }
+        
+        function updateLatestInsights() {
+            // This would normally fetch new insights from the server
+            // For demo, we'll update the content dynamically
+            
+            const insightCards = document.querySelectorAll('.insight-card .insight-content');
+            const highlights = document.querySelectorAll('.insight-highlights');
+            
+            // Update with "new" data
+            if (insightCards[0]) {
+                insightCards[0].innerHTML = `
+                    Penjualan menunjukkan tren sangat positif dengan <strong>peningkatan 31%</strong> dari bulan sebelumnya. 
+                    <strong>Jakarta</strong> tetap dominan dengan kontribusi <strong>37%</strong> dari total penjualan.
+                    Produk <strong>Laptop Gaming</strong> mulai menunjukkan permintaan tinggi dengan 145 unit terjual.
+                `;
+                
+                highlights[0].innerHTML = `
+                    <span class="highlight-tag">Jakarta 37%</span>
+                    <span class="highlight-tag">Gaming Laptop</span>
+                    <span class="highlight-tag">Growth +31%</span>
+                `;
+            }
+            
+            // Add new history item for the latest upload
+            addNewHistoryItem();
+        }
+        
+        function addNewHistoryItem() {
+            const historySection = document.querySelector('.history-section');
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('id-ID', { 
+                day: 'numeric', 
+                month: 'short', 
+                year: 'numeric' 
+            });
+            const timeStr = now.toLocaleTimeString('id-ID', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            const newHistoryItem = document.createElement('div');
+            newHistoryItem.className = 'history-item';
+            newHistoryItem.innerHTML = `
+                <div class="history-icon"><i class="fas fa-file-excel"></i></div>
+                <div class="history-content">
+                    <div class="history-header">
+                        <div class="history-filename">data_penjualan_april.xlsx</div>
+                        <div class="history-date">${dateStr}, ${timeStr}</div>
+                    </div>
+                    <div class="history-summary">
+                        Analisis terbaru menunjukkan breakthrough di segment gaming dengan laptop gaming mencapai 145 unit. 
+                        Jakarta maintain dominasi 37% dengan emerging trend di product premium segment.
+                    </div>
+                    <div class="history-insights">
+                        <span class="history-tag">Gaming Trend</span>
+                        <span class="history-tag">Jakarta 37%</span>
+                        <span class="history-tag">Premium Segment</span>
+                        <span class="history-tag">145 Gaming Units</span>
+                        <span class="history-tag">Growth +31%</span>
+                    </div>
+                    <button class="view-details-btn" onclick="showInsightDetails('april')">
+                        Lihat Detail
+                    </button>
+                </div>
+            `;
+            
+            // Insert after the section title
+            const sectionTitle = historySection.querySelector('.section-title');
+            sectionTitle.insertAdjacentElement('afterend', newHistoryItem);
+        }
+        
+        function showInsightDetails(month) {
+            // This would open a detailed modal or navigate to detail page
+            const details = {
+                'april': {
+                    title: 'Detail Insight April 2024',
+                    content: `
+                        <h3>Key Findings:</h3>
+                        <ul>
+                            <li>Gaming laptop trend emergence (+87% growth)</li>
+                            <li>Jakarta market expansion in premium segment</li>
+                            <li>New customer acquisition from esports community</li>
+                            <li>Average order value increased 23%</li>
+                        </ul>
+                        <h3>Actionable Recommendations:</h3>
+                        <ul>
+                            <li>Increase gaming laptop inventory by 40%</li>
+                            <li>Partner with gaming communities in Jakarta</li>
+                            <li>Develop gaming-specific marketing campaigns</li>
+                        </ul>
+                    `
+                },
+                'maret': {
+                    title: 'Detail Insight Maret 2024',
+                    content: `
+                        <h3>Key Findings:</h3>
+                        <ul>
+                            <li>Overall growth 28% driven by laptop sales</li>
+                            <li>Jakarta dominance at 38% market share</li>
+                            <li>18 repeat customers with strong loyalty</li>
+                            <li>Customer cycle optimization to 2.1 months</li>
+                        </ul>
+                        <h3>Actionable Recommendations:</h3>
+                        <ul>
+                            <li>Expand laptop variety in Jakarta market</li>
+                            <li>Implement referral program for repeat customers</li>
+                            <li>Optimize inventory for 2-month cycles</li>
+                        </ul>
+                    `
+                },
+                'februari': {
+                    title: 'Detail Insight Februari 2024',
+                    content: `
+                        <h3>Key Findings:</h3>
+                        <ul>
+                            <li>Smartphone demand surge in Surabaya</li>
+                            <li>Customer retention improved 15%</li>
+                            <li>Loyalty program showing early success</li>
+                            <li>Cross-selling opportunities identified</li>
+                        </ul>
+                        <h3>Actionable Recommendations:</h3>
+                        <ul>
+                            <li>Increase smartphone allocation to Surabaya</li>
+                            <li>Expand loyalty program features</li>
+                            <li>Develop cross-selling strategies</li>
+                        </ul>
+                    `
+                },
+                'januari': {
+                    title: 'Detail Insight Januari 2024',
+                    content: `
+                        <h3>Key Findings:</h3>
+                        <ul>
+                            <li>Premium laptop demand in Jakarta</li>
+                            <li>High-value customer segment identified</li>
+                            <li>Early adopter behavioral patterns</li>
+                            <li>Strong foundation for Q2 growth</li>
+                        </ul>
+                        <h3>Actionable Recommendations:</h3>
+                        <ul>
+                            <li>Focus premium product marketing in Jakarta</li>
+                            <li>Develop VIP customer experience</li>
+                            <li>Create early adopter incentive programs</li>
+                        </ul>
+                    `
+                }
+            };
+            
+            const detail = details[month] || details['april'];
+            
+            // Create modal
+            const modal = document.createElement('div');
+            modal.className = 'insight-modal';
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="closeInsightModal()"></div>
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>${detail.title}</h2>
+                        <button class="modal-close" onclick="closeInsightModal()">×</button>
+                    </div>
+                    <div class="modal-body">
+                        ${detail.content}
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="downloadInsightReport('${month}')">
+                            <i class="fas fa-download"></i> Download Report
+                        </button>
+                        <button class="btn btn-primary" onclick="closeInsightModal()">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Add modal styles
+            const modalStyles = `
+                <style>
+                .insight-modal {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    z-index: 2000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .modal-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    backdrop-filter: blur(4px);
+                }
+                .modal-content {
+                    background: white;
+                    border-radius: 12px;
+                    max-width: 600px;
+                    width: 90%;
+                    max-height: 80vh;
+                    overflow-y: auto;
+                    position: relative;
+                    z-index: 1;
+                    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+                }
+                .modal-header {
+                    padding: 24px 24px 0 24px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border-bottom: 1px solid #e5e7eb;
+                    margin-bottom: 24px;
+                }
+                .modal-header h2 {
+                    color: #1f2937;
+                    font-size: 20px;
+                    font-weight: 600;
+                }
+                .modal-close {
+                    background: none;
+                    border: none;
+                    font-size: 24px;
+                    cursor: pointer;
+                    color: #6b7280;
+                    width: 32px;
+                    height: 32px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 6px;
+                    transition: all 0.2s ease;
+                }
+                .modal-close:hover {
+                    background: #f3f4f6;
+                    color: #374151;
+                }
+                .modal-body {
+                    padding: 0 24px 24px 24px;
+                    color: #374151;
+                    line-height: 1.6;
+                }
+                .modal-body h3 {
+                    color: #1f2937;
+                    font-size: 16px;
+                    font-weight: 600;
+                    margin: 20px 0 12px 0;
+                }
+                .modal-body ul {
+                    margin: 0 0 16px 20px;
+                }
+                .modal-body li {
+                    margin-bottom: 8px;
+                }
+                .modal-footer {
+                    padding: 24px;
+                    border-top: 1px solid #e5e7eb;
+                    display: flex;
+                    gap: 12px;
+                    justify-content: flex-end;
+                }
+                .btn {
+                    padding: 10px 20px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: none;
+                    text-decoration: none;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 8px;
+                }
+                .btn-primary {
+                    background: #134e4a;
+                    color: white;
+                }
+                .btn-primary:hover {
+                    background: #0f2419;
+                }
+                .btn-secondary {
+                    background: #f9fafb;
+                    color: #374151;
+                    border: 1px solid #d1d5db;
+                }
+                .btn-secondary:hover {
+                    background: #f0fdfa;
+                    border-color: #134e4a;
+                    color: #134e4a;
+                }
+                </style>
+            `;
+            
+            document.head.insertAdjacentHTML('beforeend', modalStyles);
+            document.body.appendChild(modal);
+        }
+        
+        function closeInsightModal() {
+            const modal = document.querySelector('.insight-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        function downloadInsightReport(month) {
+            // Simulate report download
+            const reportData = {
+                month: month,
+                generatedAt: new Date().toISOString(),
+                insights: "Detailed insight report content..."
+            };
+            
+            const blob = new Blob([JSON.stringify(reportData, null, 2)], { 
+                type: 'application/json' 
+            });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `insight_report_${month}_${new Date().getFullYear()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showNotification('<i class="fas fa-download"></i> Report berhasil didownload!', 'success');
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = message;
+            
+            const notificationStyles = `
+                <style>
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: white;
+                    border: 1px solid #e5e7eb;
+                    border-radius: 8px;
+                    padding: 16px 20px;
+                    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                    z-index: 3000;
+                    font-size: 14px;
+                    font-weight: 500;
+                    animation: slideInRight 0.3s ease;
+                }
+                .notification.success {
+                    border-left: 4px solid #10b981;
+                    color: #065f46;
+                    background: #ecfdf5;
+                }
+                .notification.info {
+                    border-left: 4px solid #3b82f6;
+                    color: #1e40af;
+                    background: #eff6ff;
+                }
+                @keyframes slideInRight {
+                    from {
+                        transform: translateX(100%);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateX(0);
+                        opacity: 1;
+                    }
+                }
+                </style>
+            `;
+            
+            if (!document.querySelector('style[data-notifications]')) {
+                const style = document.createElement('style');
+                style.setAttribute('data-notifications', 'true');
+                style.innerHTML = notificationStyles.replace('<style>', '').replace('</style>', '');
+                document.head.appendChild(style);
+            }
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.3s ease reverse';
+                setTimeout(() => notification.remove(), 300);
+            }, 4000);
+        }
+        
+        function setupNavigation() {
+            // Handle user sign out
+            document.querySelector('.user-action').addEventListener('click', function() {
+                if (confirm('Apakah Anda yakin ingin keluar?')) {
+                    window.location.href = 'index.html';
+                }
+            });
+            
+            // Handle nav item clicks
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.classList.contains('active')) {
+                        e.preventDefault();
+                        return;
+                    }
+                });
+            });
+            
+            // Mobile menu toggle
+            if (window.innerWidth <= 1024) {
+                const menuToggle = document.createElement('button');
+                menuToggle.innerHTML = '☰';
+                menuToggle.style.cssText = `
+                    position: fixed;
+                    top: 16px;
+                    left: 16px;
+                    z-index: 1001;
+                    background: white;
+                    border: 1px solid #d1d5db;
+                    border-radius: 6px;
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    transition: all 0.2s ease;
+                `;
+                
+                document.body.appendChild(menuToggle);
+                
+                menuToggle.addEventListener('click', function() {
+                    document.getElementById('sidebar').classList.toggle('open');
+                });
+                
+                // Close sidebar when clicking outside
+                document.addEventListener('click', function(e) {
+                    const sidebar = document.getElementById('sidebar');
+                    if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                });
+            }
+        }
+        
+        function setupSearchFunctionality() {
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', function() {
+                const query = this.value.toLowerCase();
+                const historyItems = document.querySelectorAll('.history-item');
+                
+                historyItems.forEach(item => {
+                    const filename = item.querySelector('.history-filename').textContent.toLowerCase();
+                    const summary = item.querySelector('.history-summary').textContent.toLowerCase();
+                    const tags = item.querySelector('.history-insights').textContent.toLowerCase();
+                    
+                    const matches = filename.includes(query) || 
+                                  summary.includes(query) || 
+                                  tags.includes(query);
+                    
+                    item.style.display = matches ? 'flex' : 'none';
+                });
+                
+                if (query) {
+                    console.log('Searching insights for:', query);
+                }
+            });
+        }
+        
+        function refreshInsights() {
+            // Auto-refresh insights periodically
+            console.log('Auto-refreshing insights...');
+            // In a real app, this would fetch latest insights from the server
+        }
+        
+        // Export functions to window for inline onclick handlers
+        window.showInsightDetails = showInsightDetails;
+        window.closeInsightModal = closeInsightModal;
+        window.downloadInsightReport = downloadInsightReport;
