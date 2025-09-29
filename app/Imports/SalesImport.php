@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +23,10 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     /** @var array<string, int> */
     private array $columnMap = [];
+
+    private ?Sale $currentSale = null;
+
+    private float $currentSaleRunningTotal = 0.0;
 
     public function __construct(private readonly int $year)
     {
@@ -49,31 +54,32 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             }
 
             $firstCell = $this->stringValue($row->get(0));
-            $month = $this->stringValue($this->getValue($row, 'month') ?? $firstCell);
-
-            if ($month === '') {
-                continue;
-            }
-
-            $saleDate = $this->buildSaleDate($month, $this->getValue($row, 'day'));
+            $monthValue = $this->stringValue($this->getValue($row, 'month') ?? $firstCell);
+            $dayValue = $this->getValue($row, 'day');
             $rawNumber = $this->stringValue($this->getValue($row, 'number'));
-            $saleNumber = $this->buildSaleNumber($month, $rawNumber);
 
             $customerName = $this->stringValue($this->getValue($row, 'name'));
             $customerPhone = $this->stringValue($this->getValue($row, 'phone'));
             $customerEmail = $this->stringValue($this->getValue($row, 'email'));
             $customerAddress = $this->stringValue($this->getValue($row, 'address'));
             $customerCityName = $this->stringValue($this->getValue($row, 'city'));
-            $productName = $this->stringValue($this->getValue($row, 'product'));
-            $quantity = $this->parseInteger($this->getValue($row, 'quantity'));
-            $totalAmount = $this->parseNumeric($this->getValue($row, 'total'));
 
-            if ($saleDate === null || $saleNumber === null || $customerName === '' || $productName === '') {
-                continue;
-            }
+            $productName = $this->stringValue($this->getValue($row, 'product'));
+            $productNames = $this->extractProductNames($productName);
+            $quantity = max(1, $this->parseInteger($this->getValue($row, 'quantity')));
+            $lineTotal = $this->parseNumeric($this->getValue($row, 'total'));
+
+            $isNewSale = $monthValue !== ''
+                || $this->stringValue($dayValue) !== ''
+                || $rawNumber !== ''
+                || $customerName !== '';
+
+            $saleDate = $isNewSale ? $this->buildSaleDate($monthValue, $dayValue) : null;
+            $saleNumber = $isNewSale ? $this->buildSaleNumber($monthValue, $rawNumber) : null;
 
             DB::transaction(function () use (
-                $month,
+                $isNewSale,
+                $monthValue,
                 $saleDate,
                 $saleNumber,
                 $customerName,
@@ -81,34 +87,46 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                 $customerPhone,
                 $customerAddress,
                 $customerCityName,
-                $productName,
+                $productNames,
                 $quantity,
-                $totalAmount
+                $lineTotal
             ): void {
-                $cityId = $this->resolveCityId($customerCityName);
+                if ($isNewSale) {
+                    $this->startNewSale(
+                        $monthValue,
+                        $saleDate,
+                        $saleNumber,
+                        $customerName,
+                        $customerEmail,
+                        $customerPhone,
+                        $customerAddress,
+                        $customerCityName
+                    );
+                }
 
-                $customer = $this->findOrCreateCustomer(
-                    $customerName,
-                    $customerEmail,
-                    $customerPhone,
-                    $customerAddress,
-                    $cityId
-                );
+                if (! $this->currentSale || $productNames === []) {
+                    return;
+                }
 
-                $product = Product::firstOrCreate(
-                    ['name' => $productName],
-                    ['description' => null, 'price' => null]
-                );
+                $perItemTotal = $this->allocateLineTotals($lineTotal, count($productNames));
 
-                Sale::create([
-                    'month' => Str::upper($month),
-                    'sale_date' => $saleDate,
-                    'sale_number' => $saleNumber,
-                    'customer_id' => $customer->id,
-                    'product_id' => $product->id,
-                    'quantity' => $quantity,
-                    'total_amount' => $totalAmount,
-                ]);
+                foreach ($productNames as $index => $name) {
+                    $product = Product::firstOrCreate(
+                        ['name' => $name],
+                        ['description' => null, 'price' => null]
+                    );
+
+                    $lineTotalForItem = $this->determineLineTotal($perItemTotal[$index] ?? 0.0);
+
+                    SaleItem::create([
+                        'sale_id' => $this->currentSale->id,
+                        'product_id' => $product->id,
+                        'quantity' => $quantity,
+                        'line_total' => $lineTotalForItem,
+                    ]);
+
+                    $this->updateSaleTotal($lineTotalForItem);
+                }
             });
         }
     }
@@ -121,6 +139,110 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
     public function chunkSize(): int
     {
         return 500;
+    }
+
+    private function startNewSale(
+        string $monthValue,
+        ?Carbon $saleDate,
+        ?string $saleNumber,
+        string $customerName,
+        ?string $customerEmail,
+        ?string $customerPhone,
+        ?string $customerAddress,
+        ?string $customerCityName
+    ): void {
+        $this->resetCurrentSale();
+
+        if ($saleDate === null || $saleNumber === null || $customerName === '') {
+            return;
+        }
+
+        $cityId = $this->resolveCityId($customerCityName);
+
+        $customer = $this->findOrCreateCustomer(
+            $customerName,
+            $customerEmail,
+            $customerPhone,
+            $customerAddress,
+            $cityId
+        );
+
+        $this->currentSale = Sale::create([
+            'month' => Str::upper($monthValue),
+            'sale_date' => $saleDate,
+            'sale_number' => $saleNumber,
+            'customer_id' => $customer->id,
+            'total_amount' => 0.0,
+        ]);
+
+        $this->currentSaleRunningTotal = 0.0;
+    }
+
+    private function determineLineTotal(float $lineTotal): ?float
+    {
+        if ($lineTotal <= 0) {
+            return null;
+        }
+
+        $normalized = min(self::MAX_TOTAL_AMOUNT, round($lineTotal, 2));
+
+        return $normalized;
+    }
+
+    private function updateSaleTotal(?float $lineTotal): void
+    {
+        if (! $this->currentSale || $lineTotal === null || $lineTotal <= 0) {
+            return;
+        }
+
+        $this->currentSaleRunningTotal += $lineTotal;
+
+        $this->currentSale->forceFill([
+            'total_amount' => min(self::MAX_TOTAL_AMOUNT, $this->currentSaleRunningTotal),
+        ])->save();
+    }
+
+    private function resetCurrentSale(): void
+    {
+        $this->currentSale = null;
+        $this->currentSaleRunningTotal = 0.0;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractProductNames(string $value): array
+    {
+        if ($value === '') {
+            return [];
+        }
+
+        $segments = preg_split('/\r?\n+/', $value) ?: [];
+
+        return collect($segments)
+            ->map(fn ($segment) => trim((string) $segment))
+            ->filter()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @return list<float>
+     */
+    private function allocateLineTotals(float $lineTotal, int $itemsCount): array
+    {
+        if ($itemsCount <= 0) {
+            return [];
+        }
+
+        if ($lineTotal <= 0) {
+            return array_fill(0, $itemsCount, 0.0);
+        }
+
+        $totals = array_fill(0, $itemsCount, 0.0);
+        $totals[0] = min(self::MAX_TOTAL_AMOUNT, round($lineTotal, 2));
+
+        return $totals;
     }
 
     private function buildSaleDate(string $monthValue, mixed $dayValue): ?Carbon

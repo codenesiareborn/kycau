@@ -31,7 +31,7 @@ class ListSales extends ListRecords
                         ->required()
                         ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
                         ->storeFiles(false)
-                        ->helperText('Unggah file XLSX penjualan yang akan diimpor.'),
+                        ->helperText('Unggah file XLSX penjualan (format customer.xlsx).'),
                     TextInput::make('year')
                         ->label('Tahun')
                         ->required()

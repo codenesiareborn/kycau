@@ -22,12 +22,6 @@ class SaleForm
                 Select::make('customer_id')
                     ->relationship('customer', 'name')
                     ->required(),
-                Select::make('product_id')
-                    ->relationship('product', 'name')
-                    ->required(),
-                TextInput::make('quantity')
-                    ->required()
-                    ->numeric(),
                 TextInput::make('total_amount')
                     ->required()
                     ->numeric(),

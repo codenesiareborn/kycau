@@ -27,7 +27,8 @@ class SaleResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return SalesTable::configure($table);
+        return SalesTable::configure($table)
+            ->modifyQueryUsing(fn ($query) => $query->with(['items.product', 'customer']));
     }
 
     public static function getRelations(): array

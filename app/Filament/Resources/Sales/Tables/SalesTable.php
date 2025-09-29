@@ -23,11 +23,23 @@ class SalesTable
                     ->searchable(),
                 TextColumn::make('customer.name')
                     ->searchable(),
-                TextColumn::make('product.name')
-                    ->searchable(),
-                TextColumn::make('quantity')
-                    ->numeric()
-                    ->sortable(),
+                TextColumn::make('items_summary')
+                    ->label('Products')
+                    ->getStateUsing(fn ($record) => $record->items
+                        ->loadMissing('product')
+                        ->map(function ($item) {
+                            $productName = $item->product?->name;
+
+                            if (! $productName) {
+                                return null;
+                            }
+
+                            return sprintf('%s (Qty: %d)', $productName, max(1, (int) $item->quantity));
+                        })
+                        ->filter()
+                        ->values()
+                        ->join(', '))
+                    ->toggleable(),
                 TextColumn::make('total_amount')
                     ->numeric()
                     ->sortable(),

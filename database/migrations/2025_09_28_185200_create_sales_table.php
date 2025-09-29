@@ -17,9 +17,7 @@ return new class extends Migration
             $table->date('sale_date');
             $table->string('sale_number');
             $table->foreignId('customer_id')->constrained('customers');
-            $table->foreignId('product_id')->constrained('products');
-            $table->integer('quantity');
-            $table->decimal('total_amount', 15, 2);
+            $table->decimal('total_amount', 15, 2)->default(0);
             $table->timestamps();
         });
     }

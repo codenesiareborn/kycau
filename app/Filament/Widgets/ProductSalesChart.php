@@ -2,7 +2,6 @@
 
 namespace App\Filament\Widgets;
 
-use App\Models\Sale;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 
@@ -14,8 +13,9 @@ class ProductSalesChart extends ChartWidget
 
     protected function getData(): array
     {
-        $productSales = Sale::join('products', 'sales.product_id', '=', 'products.id')
-            ->select('products.name', DB::raw('SUM(sales.quantity) as total_quantity'))
+        $productSales = DB::table('sale_items')
+            ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
             ->groupBy('products.id', 'products.name')
             ->orderBy('total_quantity', 'desc')
             ->limit(5)

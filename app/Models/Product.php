@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -20,8 +21,15 @@ class Product extends Model
         ];
     }
 
-    public function sales(): HasMany
+    public function sales(): BelongsToMany
     {
-        return $this->hasMany(Sale::class);
+        return $this->belongsToMany(Sale::class, 'sale_items')
+            ->withPivot(['quantity', 'line_total'])
+            ->withTimestamps();
+    }
+
+    public function saleItems(): HasMany
+    {
+        return $this->hasMany(SaleItem::class);
     }
 }

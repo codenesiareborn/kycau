@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use Illuminate\Database\Seeder;
 use Laravolt\Indonesia\Models\City;
 use Carbon\Carbon;
@@ -61,19 +62,34 @@ class SampleDataSeeder extends Seeder
         for ($i = 0; $i < 200; $i++) {
             $saleDate = Carbon::now()->subDays(rand(0, 180));
             $customer = collect($customers)->random();
-            $product = $products->random();
-            $quantity = rand(1, 5);
-            $totalAmount = $product->price * $quantity * (1 + (rand(-20, 30) / 100)); // Add some price variation
 
-            Sale::create([
+            $sale = Sale::create([
                 'month' => $months[$saleDate->month - 1],
                 'sale_date' => $saleDate,
                 'sale_number' => 'INV-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
                 'customer_id' => $customer->id,
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'total_amount' => $totalAmount,
+                'total_amount' => 0,
             ]);
+
+            $itemsCount = rand(1, 4);
+            $saleTotal = 0;
+
+            for ($itemIndex = 0; $itemIndex < $itemsCount; $itemIndex++) {
+                $product = $products->random();
+                $quantity = rand(1, 5);
+                $lineTotal = $product->price * $quantity * (1 + (rand(-20, 30) / 100));
+
+                SaleItem::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                    'line_total' => $lineTotal,
+                ]);
+
+                $saleTotal += $lineTotal;
+            }
+
+            $sale->update(['total_amount' => $saleTotal]);
         }
     }
 }
