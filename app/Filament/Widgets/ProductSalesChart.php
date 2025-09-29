@@ -3,10 +3,13 @@
 namespace App\Filament\Widgets;
 
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Facades\DB;
 
 class ProductSalesChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 3;
 
     protected ?string $heading = 'Produk Terlaris';
@@ -15,8 +18,32 @@ class ProductSalesChart extends ChartWidget
 
     protected function getData(): array
     {
-        $productSales = DB::table('sale_items')
+        $filters = $this->pageFilters;
+
+        $query = DB::table('sale_items')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id');
+
+        // Apply date filters
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('sales.sale_date', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('sales.sale_date', '<=', $filters['date_to']);
+        }
+
+        // Apply product filter
+        if (!empty($filters['product_id'])) {
+            $query->where('products.id', $filters['product_id']);
+        }
+
+        // Apply city filter
+        if (!empty($filters['city_id'])) {
+            $query->join('customers', 'sales.customer_id', '=', 'customers.id')
+                ->where('customers.city_id', $filters['city_id']);
+        }
+
+        $productSales = $query
             ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'))
             ->groupBy('products.id', 'products.name')
             ->orderBy('total_quantity', 'desc')

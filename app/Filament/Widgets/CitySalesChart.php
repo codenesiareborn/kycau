@@ -4,10 +4,13 @@ namespace App\Filament\Widgets;
 
 use App\Models\Sale;
 use Filament\Widgets\ChartWidget;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Facades\DB;
 
 class CitySalesChart extends ChartWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 4;
 
     protected ?string $heading = 'Kota Terbanyak Pembelian';
@@ -16,8 +19,32 @@ class CitySalesChart extends ChartWidget
 
     protected function getData(): array
     {
-        $citySales = Sale::join('customers', 'sales.customer_id', '=', 'customers.id')
-            ->join('indonesia_cities', 'customers.city_id', '=', 'indonesia_cities.id')
+        $filters = $this->pageFilters;
+
+        $query = Sale::join('customers', 'sales.customer_id', '=', 'customers.id')
+            ->join('indonesia_cities', 'customers.city_id', '=', 'indonesia_cities.id');
+
+        // Apply date filters
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('sales.sale_date', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('sales.sale_date', '<=', $filters['date_to']);
+        }
+
+        // Apply product filter
+        if (!empty($filters['product_id'])) {
+            $query->whereHas('items', function ($q) use ($filters) {
+                $q->where('product_id', $filters['product_id']);
+            });
+        }
+
+        // Apply city filter
+        if (!empty($filters['city_id'])) {
+            $query->where('customers.city_id', $filters['city_id']);
+        }
+
+        $citySales = $query
             ->select('indonesia_cities.name', DB::raw('COUNT(sales.id) as total_sales'))
             ->groupBy('indonesia_cities.id', 'indonesia_cities.name')
             ->orderBy('total_sales', 'desc')

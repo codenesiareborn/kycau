@@ -6,19 +6,50 @@ use App\Models\Sale;
 use App\Models\Customer;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\Concerns\InteractsWithPageFilters;
 use Illuminate\Support\Carbon;
 
 class DashboardOverview extends StatsOverviewWidget
 {
+    use InteractsWithPageFilters;
+
     protected static ?int $sort = 1;
 
     protected function getStats(): array
     {
-        $currentMonthSales = Sale::whereMonth('sale_date', Carbon::now()->month)
+        $filters = $this->pageFilters;
+
+        $query = Sale::query();
+
+        // Apply date filters
+        if (!empty($filters['date_from'])) {
+            $query->whereDate('sale_date', '>=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $query->whereDate('sale_date', '<=', $filters['date_to']);
+        }
+
+        // Apply product filter
+        if (!empty($filters['product_id'])) {
+            $query->whereHas('items', function ($q) use ($filters) {
+                $q->where('product_id', $filters['product_id']);
+            });
+        }
+
+        // Apply city filter
+        if (!empty($filters['city_id'])) {
+            $query->whereHas('customer', function ($q) use ($filters) {
+                $q->where('city_id', $filters['city_id']);
+            });
+        }
+
+        $currentMonthSales = (clone $query)
+            ->whereMonth('sale_date', Carbon::now()->month)
             ->whereYear('sale_date', Carbon::now()->year)
             ->sum('total_amount');
 
-        $previousMonthSales = Sale::whereMonth('sale_date', Carbon::now()->subMonth()->month)
+        $previousMonthSales = (clone $query)
+            ->whereMonth('sale_date', Carbon::now()->subMonth()->month)
             ->whereYear('sale_date', Carbon::now()->subMonth()->year)
             ->sum('total_amount');
 
@@ -26,28 +57,67 @@ class DashboardOverview extends StatsOverviewWidget
             ? (($currentMonthSales - $previousMonthSales) / $previousMonthSales) * 100
             : 0;
 
-        $yearSales = Sale::whereYear('sale_date', Carbon::now()->year)
+        $yearSales = (clone $query)
+            ->whereYear('sale_date', Carbon::now()->year)
             ->sum('total_amount');
 
-        $previousYearSales = Sale::whereYear('sale_date', Carbon::now()->subYear()->year)
+        $previousYearSales = (clone $query)
+            ->whereYear('sale_date', Carbon::now()->subYear()->year)
             ->sum('total_amount');
 
         $yearlyGrowth = $previousYearSales > 0
             ? (($yearSales - $previousYearSales) / $previousYearSales) * 100
             : 0;
 
-        $avgTransactionPerCustomer = Customer::withCount('sales')
-            ->with('sales')
+        // Customer calculations with filters
+        $customerQuery = Customer::query();
+        if (!empty($filters['city_id'])) {
+            $customerQuery->where('city_id', $filters['city_id']);
+        }
+
+        $avgTransactionPerCustomer = $customerQuery->withCount('sales')
+            ->with(['sales' => function ($q) use ($filters) {
+                if (!empty($filters['date_from'])) {
+                    $q->whereDate('sale_date', '>=', $filters['date_from']);
+                }
+                if (!empty($filters['date_to'])) {
+                    $q->whereDate('sale_date', '<=', $filters['date_to']);
+                }
+                if (!empty($filters['product_id'])) {
+                    $q->whereHas('items', function ($query) use ($filters) {
+                        $query->where('product_id', $filters['product_id']);
+                    });
+                }
+            }])
             ->get()
-            ->filter(fn($customer) => $customer->sales_count > 0)
-            ->map(fn($customer) => $customer->sales->sum('total_amount') / $customer->sales_count)
+            ->filter(fn($customer) => $customer->sales->count() > 0)
+            ->map(fn($customer) => $customer->sales->sum('total_amount') / $customer->sales->count())
             ->avg();
 
-        $avgUnitsPerCustomer = Customer::withCount('sales')
-            ->with('sales')
+        $avgUnitsPerCustomer = $customerQuery->with(['sales.items' => function ($q) use ($filters) {
+                if (!empty($filters['date_from']) || !empty($filters['date_to'])) {
+                    $q->whereHas('sale', function ($query) use ($filters) {
+                        if (!empty($filters['date_from'])) {
+                            $query->whereDate('sale_date', '>=', $filters['date_from']);
+                        }
+                        if (!empty($filters['date_to'])) {
+                            $query->whereDate('sale_date', '<=', $filters['date_to']);
+                        }
+                    });
+                }
+                if (!empty($filters['product_id'])) {
+                    $q->where('product_id', $filters['product_id']);
+                }
+            }])
             ->get()
-            ->filter(fn($customer) => $customer->sales_count > 0)
-            ->map(fn($customer) => $customer->sales->sum('quantity') / $customer->sales_count)
+            ->filter(function ($customer) {
+                return $customer->sales->flatMap->items->count() > 0;
+            })
+            ->map(function ($customer) {
+                $totalUnits = $customer->sales->flatMap->items->sum('quantity');
+                $salesCount = $customer->sales->count();
+                return $salesCount > 0 ? $totalUnits / $salesCount : 0;
+            })
             ->avg();
 
         return [
