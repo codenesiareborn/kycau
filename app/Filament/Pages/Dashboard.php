@@ -7,6 +7,7 @@ use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\ProductSalesChart;
 use App\Filament\Widgets\SalesChart;
 use App\Filament\Widgets\SalesDataTable;
+use App\Filament\Widgets\UploadHistoryTable;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -20,6 +21,8 @@ use Illuminate\Support\Facades\DB;
 class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
+
+    protected $listeners = ['refresh' => '$refresh'];
 
     protected static ?string $title = 'Dashboard Data';
 
@@ -35,6 +38,7 @@ class Dashboard extends BaseDashboard
             ProductSalesChart::class,
             CitySalesChart::class,
             SalesDataTable::class,
+            UploadHistoryTable::class,
         ];
     }
 
