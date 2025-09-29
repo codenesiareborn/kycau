@@ -239,10 +239,19 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             return array_fill(0, $itemsCount, 0.0);
         }
 
-        $totals = array_fill(0, $itemsCount, 0.0);
-        $totals[0] = min(self::MAX_TOTAL_AMOUNT, round($lineTotal, 2));
+        $perItem = round($lineTotal / $itemsCount, 2);
+        $totals = array_fill(0, $itemsCount, $perItem);
 
-        return $totals;
+        $difference = round($lineTotal - array_sum($totals), 2);
+
+        if ($difference !== 0.0) {
+            $totals[0] = round($totals[0] + $difference, 2);
+        }
+
+        return array_map(
+            fn ($value) => min(self::MAX_TOTAL_AMOUNT, max(0.0, $value)),
+            $totals
+        );
     }
 
     private function buildSaleDate(string $monthValue, mixed $dayValue): ?Carbon
