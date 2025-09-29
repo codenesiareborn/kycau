@@ -64,3 +64,14 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Filament Stats Widget Custom Styles */
+.stats-overview-widget-large .fi-wi-stats-overview-stat-value {
+    font-size: 1.875rem !important; /* 30px */
+    font-weight: 700 !important;
+}
+
+.stats-overview-widget-small .fi-wi-stats-overview-stat-value {
+    font-size: 1.25rem !important; /* 20px */
+    font-weight: 600 !important;
+}

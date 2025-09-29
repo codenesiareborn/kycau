@@ -8,6 +8,8 @@ use Illuminate\Support\Carbon;
 
 class SalesChart extends ChartWidget
 {
+    protected static ?int $sort = 2;
+
     protected ?string $heading = 'Total Penjualan per Bulan';
 
     protected int | string | array $columnSpan = 'full';

@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class ProductSalesChart extends ChartWidget
 {
+    protected static ?int $sort = 3;
+
     protected ?string $heading = 'Produk Terlaris';
 
     protected int | string | array $columnSpan = 'half';

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class CitySalesChart extends ChartWidget
 {
+    protected static ?int $sort = 4;
+
     protected ?string $heading = 'Kota Terbanyak Pembelian';
 
     protected int | string | array $columnSpan = 'half';

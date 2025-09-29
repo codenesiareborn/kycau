@@ -10,6 +10,8 @@ use Illuminate\Support\Carbon;
 
 class DashboardOverview extends StatsOverviewWidget
 {
+    protected static ?int $sort = 1;
+
     protected function getStats(): array
     {
         $currentMonthSales = Sale::whereMonth('sale_date', Carbon::now()->month)
@@ -52,22 +54,34 @@ class DashboardOverview extends StatsOverviewWidget
             Stat::make('Total Sales', 'Rp ' . number_format($currentMonthSales, 0, ',', '.'))
                 ->description(($monthlyGrowth >= 0 ? '+' : '') . number_format($monthlyGrowth, 1) . '% dari bulan lalu')
                 ->descriptionIcon($monthlyGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($monthlyGrowth >= 0 ? 'success' : 'danger'),
+                ->color($monthlyGrowth >= 0 ? 'success' : 'danger')
+                ->extraAttributes([
+                    'class' => 'stats-overview-widget-large'
+                ]),
 
             Stat::make('This Year Sales', 'Rp ' . number_format($yearSales, 0, ',', '.'))
                 ->description(($yearlyGrowth >= 0 ? '+' : '') . number_format($yearlyGrowth, 1) . '% dari tahun lalu')
                 ->descriptionIcon($yearlyGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
-                ->color($yearlyGrowth >= 0 ? 'success' : 'danger'),
+                ->color($yearlyGrowth >= 0 ? 'success' : 'danger')
+                ->extraAttributes([
+                    'class' => 'stats-overview-widget-large'
+                ]),
 
             Stat::make('Avg Transaction/Customer', 'Rp ' . number_format($avgTransactionPerCustomer ?: 0, 0, ',', '.'))
-                ->description('Rata-rata transaksi per customer')
+                ->description('Avg trx per customer')
                 ->descriptionIcon('heroicon-m-user-group')
-                ->color('primary'),
+                ->color('primary')
+                ->extraAttributes([
+                    'class' => 'stats-overview-widget-small'
+                ]),
 
             Stat::make('Avg Units/Customer', number_format($avgUnitsPerCustomer ?: 0, 1))
-                ->description('Rata-rata unit per customer')
+                ->description('Avg unit per customer')
                 ->descriptionIcon('heroicon-m-cube')
-                ->color('warning'),
+                ->color('warning')
+                ->extraAttributes([
+                    'class' => 'stats-overview-widget-small'
+                ]),
         ];
     }
 }
