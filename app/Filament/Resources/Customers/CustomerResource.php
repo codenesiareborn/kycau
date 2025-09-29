@@ -27,7 +27,8 @@ class CustomerResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return CustomersTable::configure($table);
+        return CustomersTable::configure($table)
+            ->modifyQueryUsing(fn ($query) => $query->with('city'));
     }
 
     public static function getRelations(): array
