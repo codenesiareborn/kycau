@@ -6,6 +6,7 @@ use App\Filament\Widgets\CitySalesChart;
 use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\ProductSalesChart;
 use App\Filament\Widgets\SalesChart;
+use App\Filament\Widgets\SalesDataTable;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -33,6 +34,7 @@ class Dashboard extends BaseDashboard
             SalesChart::class,
             ProductSalesChart::class,
             CitySalesChart::class,
+            SalesDataTable::class,
         ];
     }
 
