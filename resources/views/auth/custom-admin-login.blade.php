@@ -467,7 +467,7 @@
             </div>
             
             <div class="signup-link">
-                Don't have an account? <a href="#">Create one</a>
+                Don't have an account? <a href="{{ route('custom.register.form') }}">Create one</a>
             </div>
         </div>
     </div>
