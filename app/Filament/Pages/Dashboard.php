@@ -25,6 +25,11 @@ class Dashboard extends BaseDashboard
 {
     use HasFiltersForm;
 
+    public function persistsFiltersInSession(): bool
+    {
+        return false;
+    }
+
     protected $listeners = ['refresh' => '$refresh'];
 
     protected static ?string $title = 'Dashboard Data';
