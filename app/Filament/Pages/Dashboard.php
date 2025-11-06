@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\CitySalesChart;
+use App\Filament\Widgets\CustomerMap;
 use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\ProductSalesChart;
 use App\Filament\Widgets\SalesChart;
@@ -12,6 +13,7 @@ use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Illuminate\Contracts\View\View;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Support\Enums\Width;
 use Filament\Schemas\Components\Section;
@@ -36,6 +38,7 @@ class Dashboard extends BaseDashboard
             DashboardOverview::class,
             SalesChart::class,
             ProductSalesChart::class,
+            CustomerMap::class,
             CitySalesChart::class,
             SalesDataTable::class,
             UploadHistoryTable::class,
@@ -86,5 +89,15 @@ class Dashboard extends BaseDashboard
                     ->columns(4)
                     ->columnSpanFull()
             ]);
+    }
+
+    public function getHeader(): ?View
+    {
+        return view('filament.pages.dashboard-header');
+    }
+
+    public function getFooter(): ?View
+    {
+        return view('filament.pages.dashboard-footer');
     }
 }
