@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->web(append: [
+            \App\Http\Middleware\RedirectToCustomLogin::class,
+            \App\Http\Middleware\EnsureFilamentCompatibility::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //
