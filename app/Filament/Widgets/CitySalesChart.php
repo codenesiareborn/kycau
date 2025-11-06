@@ -11,7 +11,7 @@ class CitySalesChart extends ChartWidget
 {
     use InteractsWithPageFilters;
 
-    protected static ?int $sort = 4;
+    protected static ?int $sort = 3;
 
     protected ?string $heading = 'Kota Terbanyak Pembelian';
 

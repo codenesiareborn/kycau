@@ -12,6 +12,7 @@ use App\Filament\Widgets\UploadHistoryTable;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\ViewField;
 use Filament\Pages\Dashboard as BaseDashboard;
 use Illuminate\Contracts\View\View;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
@@ -38,8 +39,8 @@ class Dashboard extends BaseDashboard
             DashboardOverview::class,
             SalesChart::class,
             ProductSalesChart::class,
-            CustomerMap::class,
             CitySalesChart::class,
+            CustomerMap::class,
             SalesDataTable::class,
             UploadHistoryTable::class,
         ];
@@ -85,10 +86,25 @@ class Dashboard extends BaseDashboard
                                     });
                             })
                             ->searchable(),
+
+                        ViewField::make('clear_button')
+                            ->view('filament.forms.components.clear-filters-button')
+                            ->columnSpanFull(),
                     ])
                     ->columns(4)
-                    ->columnSpanFull()
+                    ->columnSpanFull(),
             ]);
+    }
+
+    public function clearFilters(): void
+    {
+        $this->filters = [
+            'date_from' => null,
+            'date_to' => null,
+            'product_id' => null,
+            'city_id' => null,
+        ];
+        $this->dispatch('refresh');
     }
 
     public function getHeader(): ?View

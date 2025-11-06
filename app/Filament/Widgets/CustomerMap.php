@@ -12,7 +12,7 @@ class CustomerMap extends Widget
 {
     use InteractsWithPageFilters;
 
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 4;
 
     protected string $view = 'filament.widgets.customer-map';
 
@@ -22,19 +22,30 @@ class CustomerMap extends Widget
     {
         $filters = $this->pageFilters;
 
-        $query = Sale::with(['customer.city', 'items.product'])
-            ->join('customers', 'sales.customer_id', '=', 'customers.id')
+        // Get top customers by total sales amount (limit to 150 customers max)
+        $topCustomerIds = Sale::join('customers', 'sales.customer_id', '=', 'customers.id')
             ->join('indonesia_cities', 'customers.city_id', '=', 'indonesia_cities.id')
             ->whereNotNull('customers.city_id')
             ->whereRaw("JSON_EXTRACT(indonesia_cities.meta, '$.lat') IS NOT NULL")
-            ->whereRaw("JSON_EXTRACT(indonesia_cities.meta, '$.long') IS NOT NULL");
+            ->whereRaw("JSON_EXTRACT(indonesia_cities.meta, '$.long') IS NOT NULL")
+            ->when(!empty($filters['date_from']), fn($q) => $q->whereDate('sales.sale_date', '>=', $filters['date_from']))
+            ->when(!empty($filters['date_to']), fn($q) => $q->whereDate('sales.sale_date', '<=', $filters['date_to']))
+            ->when(!empty($filters['city_id']), fn($q) => $q->where('customers.city_id', $filters['city_id']))
+            ->select('sales.customer_id', DB::raw('SUM(sales.total_amount) as total_sales'))
+            ->groupBy('sales.customer_id')
+            ->orderBy('total_sales', 'desc')
+            ->limit(200)
+            ->pluck('customer_id');
+
+        $query = Sale::with(['customer.city', 'items.product'])
+            ->whereIn('customer_id', $topCustomerIds);
 
         // Apply date filters
         if (!empty($filters['date_from'])) {
-            $query->whereDate('sales.sale_date', '>=', $filters['date_from']);
+            $query->whereDate('sale_date', '>=', $filters['date_from']);
         }
         if (!empty($filters['date_to'])) {
-            $query->whereDate('sales.sale_date', '<=', $filters['date_to']);
+            $query->whereDate('sale_date', '<=', $filters['date_to']);
         }
 
         // Apply product filter
@@ -44,12 +55,7 @@ class CustomerMap extends Widget
             });
         }
 
-        // Apply city filter
-        if (!empty($filters['city_id'])) {
-            $query->where('customers.city_id', $filters['city_id']);
-        }
-
-        $sales = $query->select('sales.*')->get();
+        $sales = $query->get();
 
         // Group sales by customer and aggregate data
         $customerData = [];
