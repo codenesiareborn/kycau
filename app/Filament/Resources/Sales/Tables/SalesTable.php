@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Sales\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -57,6 +58,12 @@ class SalesTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Data Penjualan')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus data penjualan ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->modalCancelActionLabel('Batal'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

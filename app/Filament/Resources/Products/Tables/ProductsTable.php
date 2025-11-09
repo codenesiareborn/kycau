@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Products\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -40,6 +41,12 @@ class ProductsTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Produk')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus produk ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->modalCancelActionLabel('Batal'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

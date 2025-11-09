@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Customers\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
@@ -44,6 +45,12 @@ class CustomersTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Customer')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus customer ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->modalCancelActionLabel('Batal'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
