@@ -3,6 +3,9 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Sale;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
@@ -86,6 +89,26 @@ class SalesDataTable extends BaseWidget
                     ->formatStateUsing(fn ($state): string => 'Rp ' . number_format($state, 0, ',', '.'))
                     ->sortable()
                     ->alignEnd(),
+            ])
+            ->recordActions([
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading('Hapus Data Penjualan')
+                    ->modalDescription('Apakah Anda yakin ingin menghapus data penjualan ini? Tindakan ini tidak dapat dibatalkan.')
+                    ->modalSubmitActionLabel('Ya, Hapus')
+                    ->modalCancelActionLabel('Batal')
+                    ->successNotificationTitle('Data penjualan berhasil dihapus'),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading('Hapus Data Penjualan Terpilih')
+                        ->modalDescription('Apakah Anda yakin ingin menghapus data penjualan yang dipilih? Tindakan ini tidak dapat dibatalkan.')
+                        ->modalSubmitActionLabel('Ya, Hapus')
+                        ->modalCancelActionLabel('Batal')
+                        ->successNotificationTitle('Data penjualan berhasil dihapus'),
+                ]),
             ])
             ->defaultSort('sale_date', 'desc')
             ->paginated([10, 25, 50])
