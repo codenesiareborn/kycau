@@ -9,16 +9,23 @@
         }
 
         .customer-marker {
-            border-radius: 50%;
+            border-radius: 50% !important;
             border: 2px solid white;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-            display: flex;
+            display: flex !important;
             align-items: center;
             justify-content: center;
             color: white;
             font-size: 10px;
             font-weight: bold;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            aspect-ratio: 1 / 1 !important;
+            overflow: hidden;
+        }
+
+        /* Ensure Leaflet's divIcon wrapper is also circular */
+        .leaflet-marker-icon.customer-marker {
+            border-radius: 50% !important;
         }
 
         .marker-yellow {

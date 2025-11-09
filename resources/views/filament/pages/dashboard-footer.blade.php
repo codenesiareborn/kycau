@@ -56,7 +56,7 @@
 
             const customIcon = L.divIcon({
                 className: `customer-marker ${markerColor}`,
-                html: `<div style="width: ${markerSize}px; height: ${markerSize}px;" class="customer-marker ${markerColor}"></div>`,
+                html: '',
                 iconSize: [markerSize, markerSize],
                 iconAnchor: [markerSize/2, markerSize/2]
             });
