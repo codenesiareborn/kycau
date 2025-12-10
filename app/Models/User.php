@@ -171,7 +171,7 @@ class User extends Authenticatable implements FilamentUser
             return 'Kadaluarsa';
         }
 
-        $daysLeft = now()->diffInDays($this->package_expires_at, false);
+        $daysLeft = ceil(now()->floatDiffInDays($this->package_expires_at, false));
         if ($daysLeft <= 0) {
             return 'Kadaluarsa hari ini';
         }

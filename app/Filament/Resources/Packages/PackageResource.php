@@ -27,7 +27,7 @@ class PackageResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Paket';
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 
     protected static ?int $navigationSort = 98;
 

@@ -15,10 +15,13 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
 
 use BackedEnum;
+use UnitEnum;
 
 class Profile extends Page implements HasSchemas
 {
     use InteractsWithSchemas;
+
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUser;
 

@@ -30,6 +30,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->brandName('KyCAU')
             ->darkMode(false)
             ->colors([
                 'primary' => Color::Emerald['900'],

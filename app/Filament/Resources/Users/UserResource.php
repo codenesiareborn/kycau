@@ -24,7 +24,7 @@ class UserResource extends Resource
     protected static ?string $navigationLabel = 'User Management';
 
 
-    protected static string|UnitEnum|null $navigationGroup = 'Settings';
+    protected static string|UnitEnum|null $navigationGroup = 'Pengaturan';
 
 
     protected static ?int $navigationSort = 99;

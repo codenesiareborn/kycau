@@ -9,6 +9,7 @@ use App\Filament\Resources\Sales\Schemas\SaleForm;
 use App\Filament\Resources\Sales\Tables\SalesTable;
 use App\Models\Sale;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +19,9 @@ class SaleResource extends Resource
 {
     protected static ?string $model = Sale::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|UnitEnum|null $navigationGroup = 'Transaksi';
+
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
     public static function form(Schema $schema): Schema
     {
