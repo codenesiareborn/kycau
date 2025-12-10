@@ -6,6 +6,7 @@ namespace App\Models;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -27,6 +28,8 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'package_id',
+        'package_expires_at',
     ];
 
     /**
@@ -49,6 +52,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'package_expires_at' => 'datetime',
         ];
     }
 
@@ -70,6 +74,14 @@ class User extends Authenticatable implements FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return true; // All users can access panel, permissions are handled by Shield
+    }
+
+    /**
+     * Get the user's package
+     */
+    public function package(): BelongsTo
+    {
+        return $this->belongsTo(Package::class);
     }
 
     /**
@@ -103,4 +115,68 @@ class User extends Authenticatable implements FilamentUser
     {
         return $this->hasMany(FileUpload::class);
     }
+
+    /**
+     * Check if the user has an active package (not expired).
+     */
+    public function hasActivePackage(): bool
+    {
+        if (!$this->package_id) {
+            return false;
+        }
+
+        // Lifetime packages never expire
+        if ($this->package?->isLifetime()) {
+            return true;
+        }
+
+        // Check if package has expired
+        if ($this->package_expires_at && $this->package_expires_at->isPast()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the user's package has expired.
+     */
+    public function isPackageExpired(): bool
+    {
+        if (!$this->package_id) {
+            return true;
+        }
+
+        if ($this->package?->isLifetime()) {
+            return false;
+        }
+
+        return $this->package_expires_at && $this->package_expires_at->isPast();
+    }
+
+    /**
+     * Get the package expiration status label.
+     */
+    public function getPackageStatusAttribute(): string
+    {
+        if (!$this->package_id) {
+            return 'Tidak ada paket';
+        }
+
+        if ($this->package?->isLifetime()) {
+            return 'Lifetime';
+        }
+
+        if ($this->isPackageExpired()) {
+            return 'Kadaluarsa';
+        }
+
+        $daysLeft = now()->diffInDays($this->package_expires_at, false);
+        if ($daysLeft <= 0) {
+            return 'Kadaluarsa hari ini';
+        }
+
+        return $daysLeft . ' hari tersisa';
+    }
 }
+

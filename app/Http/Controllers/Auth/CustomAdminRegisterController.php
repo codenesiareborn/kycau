@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Package;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,10 @@ class CustomAdminRegisterController extends Controller
             return redirect('/admin');
         }
 
-        return view('auth.custom-admin-register');
+        $packages = Package::orderBy('sort_order')->get();
+        $defaultPackage = Package::where('is_trial', true)->where('is_active', true)->first();
+
+        return view('auth.custom-admin-register', compact('packages', 'defaultPackage'));
     }
 
     /**
@@ -34,12 +38,34 @@ class CustomAdminRegisterController extends Controller
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', Password::min(8)],
             'terms' => ['accepted'],
+            'package_id' => ['nullable', 'exists:packages,id'],
         ]);
+
+        // Get the selected package or default to trial
+        $package = null;
+        if (!empty($validated['package_id'])) {
+            $package = Package::where('id', $validated['package_id'])
+                ->where('is_active', true)
+                ->first();
+        }
+
+        // Fallback to trial package if no valid package selected
+        if (!$package) {
+            $package = Package::where('is_trial', true)->where('is_active', true)->first();
+        }
+
+        // Calculate package expiration
+        $packageExpiresAt = null;
+        if ($package && $package->duration_days) {
+            $packageExpiresAt = now()->addDays($package->duration_days);
+        }
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
+            'package_id' => $package?->id,
+            'package_expires_at' => $packageExpiresAt,
         ]);
 
         // Optionally send verification email if enabled in the model / features
@@ -52,6 +78,6 @@ class CustomAdminRegisterController extends Controller
         }
 
         return redirect()->route('login')
-            ->with('status', 'Registration successful. Please check your email to verify your account and then log in.');
+            ->with('status', 'Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi akun, lalu login.');
     }
 }
