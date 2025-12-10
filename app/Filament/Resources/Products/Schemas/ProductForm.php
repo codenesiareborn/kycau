@@ -14,28 +14,31 @@ class ProductForm
         return $schema
             ->components([
                 Select::make('user_id')
-                    ->label('User')
+                    ->label('Pemilik')
                     ->relationship('user', 'name')
                     ->searchable()
                     ->preload()
                     ->required()
                     ->default(fn() => auth()->id())
                     ->visible(fn() => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
-                    ->helperText('Pilih user yang akan memiliki product ini'),
+                    ->helperText('Pilih user yang akan memiliki produk ini'),
                 TextInput::make('name')
-                    ->label('Nama')
+                    ->label('Nama Produk')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->placeholder('Masukkan nama produk'),
                 Textarea::make('description')
                     ->label('Deskripsi')
                     ->rows(4)
-                    ->nullable(),
+                    ->placeholder('Masukkan deskripsi produk (opsional)')
+                    ->columnSpanFull(),
                 TextInput::make('price')
-                    ->label('Harga')
+                    ->label('Harga Satuan')
                     ->numeric()
                     ->prefix('Rp')
                     ->minValue(0)
-                    ->nullable(),
+                    ->placeholder('0')
+                    ->helperText('Harga per unit produk'),
             ]);
     }
 }
