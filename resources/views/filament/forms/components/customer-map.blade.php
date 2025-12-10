@@ -299,6 +299,7 @@ function customerMap(initialLat, initialLng) {
         },
         
         matchCity(geodata) {
+            console.log('=== CITY MATCHING DEBUG ===');
             console.log('Full geodata structure:', geodata);
             console.log('Address object:', geodata.address);
             
@@ -316,6 +317,14 @@ function customerMap(initialLat, initialLng) {
             console.log('Possible city names found:', possibleCityNames);
             
             if (possibleCityNames.length > 0) {
+                // Prioritize county (regency) for better matching
+                let cityName = geodata.address?.county || possibleCityNames[0];
+                
+                console.log('Selected city name for API call:', cityName);
+                console.log('Sending request to /api/cities/search?q=' + encodeURIComponent(cityName));
+                
+                // Set loading state
+                this.searching = true;
                 // Expand translation dictionary for more Indonesian cities
                 const cityTranslations = {
                     'Central Jakarta': 'JAKARTA PUSAT',
@@ -332,9 +341,8 @@ function customerMap(initialLat, initialLng) {
                     'Kulon Progo Regency': 'KULON PROGO'
                 };
                 
-                // Simplified approach: try first valid city name only
-                const originalName = possibleCityNames[0];
-                let cityName = originalName;
+                // Simplified approach: use the prioritized city name
+                const originalName = cityName;
                 
                 // Apply translation if available
                 if (cityTranslations[cityName]) {
@@ -401,6 +409,11 @@ function customerMap(initialLat, initialLng) {
                     })
                     .catch(error => {
                         console.error('City matching failed:', error.message);
+                    })
+                    .finally(() => {
+                        // Clear loading state
+                        this.searching = false;
+                        console.log('=== CITY MATCHING COMPLETED ===');
                     });
                     
             } else {

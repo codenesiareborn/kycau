@@ -40,6 +40,11 @@ class CustomerForm
                     ->numeric()
                     ->step(0.00000001)
                     ->default(null),
+                TextInput::make('city_id')
+                    ->label('City ID')
+                    ->hidden()
+                    ->numeric()
+                    ->default(null),
                 CustomerMap::make('map')
                     ->label('🗺️ Lokasi Customer - Tentukan alamat dan kota dengan menyeret marker atau klik pada peta')
                     ->columnSpanFull(),
