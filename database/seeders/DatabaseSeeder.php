@@ -15,13 +15,18 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
-            'name' => 'Admin',
-            'email' => 'admin@datauwitan.com',
+        // Create roles and permissions first
+        $this->call([
+            ShieldSeeder::class,
         ]);
 
+        // Create users with roles
+        $this->call([
+            SuperAdminSeeder::class,
+            UserSeeder::class,
+        ]);
+
+        // Then seed location and sample data
         $this->call([
             ProvincesSeeder::class,
             CitiesSeeder::class,
