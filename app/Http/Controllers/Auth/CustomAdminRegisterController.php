@@ -68,6 +68,9 @@ class CustomAdminRegisterController extends Controller
             'package_expires_at' => $packageExpiresAt,
         ]);
 
+        // Assign default 'user' role
+        $user->assignRole('user');
+
         // Optionally send verification email if enabled in the model / features
         if (method_exists($user, 'sendEmailVerificationNotification')) {
             try {
@@ -77,7 +80,7 @@ class CustomAdminRegisterController extends Controller
             }
         }
 
-        return redirect()->route('login')
+        return redirect()->route('filament.admin.auth.login')
             ->with('status', 'Pendaftaran berhasil! Silakan cek email Anda untuk verifikasi akun, lalu login.');
     }
 }
