@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Laravolt\Indonesia\Models\City;
 use Carbon\Carbon;
@@ -17,13 +18,21 @@ class SampleDataSeeder extends Seeder
     {
         $faker = Faker::create('id_ID');
 
+        // Get the first user (superadmin) to assign sample data
+        $user = User::first();
+
+        if (!$user) {
+            $this->command->error('No users found. Please run UserSeeders first.');
+            return;
+        }
+
         // Create sample products
         $products = [
-            ['name' => 'Laptop', 'description' => 'Laptop untuk kebutuhan kerja dan gaming', 'price' => 15000000],
-            ['name' => 'Smartphone', 'description' => 'Smartphone Android terbaru', 'price' => 6000000],
-            ['name' => 'Tablet', 'description' => 'Tablet untuk produktivitas', 'price' => 8000000],
-            ['name' => 'Monitor', 'description' => 'Monitor 24 inch Full HD', 'price' => 3000000],
-            ['name' => 'Keyboard', 'description' => 'Keyboard mechanical gaming', 'price' => 1500000],
+            ['name' => 'Laptop', 'description' => 'Laptop untuk kebutuhan kerja dan gaming', 'price' => 15000000, 'user_id' => $user->id],
+            ['name' => 'Smartphone', 'description' => 'Smartphone Android terbaru', 'price' => 6000000, 'user_id' => $user->id],
+            ['name' => 'Tablet', 'description' => 'Tablet untuk produktivitas', 'price' => 8000000, 'user_id' => $user->id],
+            ['name' => 'Monitor', 'description' => 'Monitor 24 inch Full HD', 'price' => 3000000, 'user_id' => $user->id],
+            ['name' => 'Keyboard', 'description' => 'Keyboard mechanical gaming', 'price' => 1500000, 'user_id' => $user->id],
         ];
 
         foreach ($products as $productData) {
@@ -32,9 +41,17 @@ class SampleDataSeeder extends Seeder
 
         // Get major cities
         $cities = City::whereIn('name', [
-            'JAKARTA PUSAT', 'JAKARTA SELATAN', 'JAKARTA UTARA',
-            'SURABAYA', 'BANDUNG', 'YOGYAKARTA', 'MEDAN',
-            'SEMARANG', 'MAKASSAR', 'MALANG', 'PALEMBANG'
+            'JAKARTA PUSAT',
+            'JAKARTA SELATAN',
+            'JAKARTA UTARA',
+            'SURABAYA',
+            'BANDUNG',
+            'YOGYAKARTA',
+            'MEDAN',
+            'SEMARANG',
+            'MAKASSAR',
+            'MALANG',
+            'PALEMBANG'
         ])->get();
 
         if ($cities->count() === 0) {
@@ -46,6 +63,7 @@ class SampleDataSeeder extends Seeder
         $customers = [];
         for ($i = 0; $i < 50; $i++) {
             $customer = Customer::create([
+                'user_id' => $user->id,
                 'name' => $faker->name,
                 'phone' => $faker->phoneNumber,
                 'email' => $faker->unique()->email,
@@ -64,6 +82,7 @@ class SampleDataSeeder extends Seeder
             $customer = collect($customers)->random();
 
             $sale = Sale::create([
+                'user_id' => $user->id,
                 'month' => $months[$saleDate->month - 1],
                 'sale_date' => $saleDate,
                 'sale_number' => 'INV-' . str_pad($i + 1, 5, '0', STR_PAD_LEFT),
