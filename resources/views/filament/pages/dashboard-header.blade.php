@@ -59,8 +59,21 @@
         }
 
         .map-fullscreen #customerMap {
-            height: calc(100vh - 80px) !important;
+            height: 100vh !important;
             border-radius: 0 !important;
+        }
+
+        /* Hide button container in fullscreen mode */
+        .map-fullscreen .flex.justify-between {
+            display: none !important;
+        }
+
+        /* Fullscreen overlay button */
+        .fullscreen-overlay-btn {
+            position: absolute !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 10000 !important;
         }
 
         .fullscreen-header {

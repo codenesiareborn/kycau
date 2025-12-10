@@ -138,7 +138,8 @@ class DashboardOverview extends StatsOverviewWidget
                 ->descriptionIcon($monthlyGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($monthlyGrowth >= 0 ? 'success' : 'danger')
                 ->extraAttributes([
-                    'class' => 'stats-overview-widget-large'
+                    'class' => 'stats-overview-widget-large',
+                    'style' => 'font-size: 0.875rem !important; font-weight: 700 !important;'
                 ]),
 
             Stat::make('This Year Sales', 'Rp ' . number_format($yearSales, 0, ',', '.'))
@@ -146,7 +147,8 @@ class DashboardOverview extends StatsOverviewWidget
                 ->descriptionIcon($yearlyGrowth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
                 ->color($yearlyGrowth >= 0 ? 'success' : 'danger')
                 ->extraAttributes([
-                    'class' => 'stats-overview-widget-large'
+                    'class' => 'stats-overview-widget-large',
+                    'style' => 'font-size: 0.875rem !important; font-weight: 700 !important;'
                 ]),
 
             Stat::make('Avg Transaction/Customer', 'Rp ' . number_format($avgTransactionPerCustomer ?: 0, 0, ',', '.'))
@@ -154,7 +156,8 @@ class DashboardOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('primary')
                 ->extraAttributes([
-                    'class' => 'stats-overview-widget-small'
+                    'class' => 'stats-overview-widget-small',
+                    'style' => 'font-size: 0.75rem !important; font-weight: 600 !important;'
                 ]),
 
             Stat::make('Avg Units/Customer', number_format($avgUnitsPerCustomer ?: 0, 1))
@@ -162,7 +165,8 @@ class DashboardOverview extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-cube')
                 ->color('warning')
                 ->extraAttributes([
-                    'class' => 'stats-overview-widget-small'
+                    'class' => 'stats-overview-widget-small',
+                    'style' => 'font-size: 0.75rem !important; font-weight: 600 !important;'
                 ]),
         ];
     }

@@ -58,4 +58,46 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
+// API route for city search (used by map component)
+Route::get('/api/cities/search', function (Request $request) {
+    $query = $request->get('q');
+    
+    if (empty($query)) {
+        return response()->json(null);
+    }
+    
+    // English to Indonesian city name translations
+    $translations = [
+        'Sleman Regency' => 'Sleman',
+        'Yogyakarta' => 'Yogyakarta',
+        'Special Region of Yogyakarta' => 'Yogyakarta',
+        'Bantul Regency' => 'Bantul',
+        'Kulon Progo Regency' => 'Kulon Progo',
+        'Gunung Kidul Regency' => 'Gunung Kidul',
+    ];
+    
+    // Apply translation if found
+    $translatedQuery = $translations[$query] ?? $query;
+    
+    // Try exact match first with translated query
+    $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$translatedQuery}%")
+        ->orWhere('name', 'LIKE', "%KOTA {$translatedQuery}%")
+        ->orWhere('name', 'LIKE', "%KABUPATEN {$translatedQuery}%")
+        ->first();
+    
+    // If not found, try with original query as fallback
+    if (!$city && $translatedQuery !== $query) {
+        $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$query}%")
+            ->orWhere('name', 'LIKE', "%KOTA {$query}%")
+            ->orWhere('name', 'LIKE', "%KABUPATEN {$query}%")
+            ->first();
+    }
+    
+    return response()->json($city ? [
+        'id' => $city->id,
+        'name' => $city->name,
+        'province_name' => $city->province->name
+    ] : null);
+});
+
 require __DIR__.'/auth.php';

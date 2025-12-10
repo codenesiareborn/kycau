@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Customers\Schemas;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use App\Filament\Forms\Components\CustomerMap;
 use Filament\Schemas\Schema;
 
 class CustomerForm
@@ -36,16 +37,26 @@ class CustomerForm
                     ->tel()
                     ->maxLength(50)
                     ->nullable(),
-                Textarea::make('address')
-                    ->label('Alamat')
-                    ->rows(3)
-                    ->nullable(),
-                Select::make('city_id')
-                    ->label('Kota')
-                    ->relationship('city', 'name')
-                    ->searchable()
-                    ->preload()
-                    ->nullable(),
+                TextInput::make('latitude')
+                    ->label('Latitude')
+                    ->hidden()
+                    ->numeric()
+                    ->step(0.00000001)
+                    ->default(null),
+                TextInput::make('longitude')
+                    ->label('Longitude')
+                    ->hidden()
+                    ->numeric()
+                    ->step(0.00000001)
+                    ->default(null),
+                TextInput::make('city_id')
+                    ->label('City ID')
+                    ->hidden()
+                    ->numeric()
+                    ->default(null),
+                CustomerMap::make('map')
+                    ->label('🗺️ Lokasi Customer - Tentukan alamat dan kota dengan menyeret marker atau klik pada peta')
+                    ->columnSpanFull(),
             ]);
     }
 }

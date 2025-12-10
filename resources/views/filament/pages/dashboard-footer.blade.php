@@ -1,6 +1,10 @@
 @push('scripts')
     {{-- Leaflet JavaScript --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    
+    {{-- Leaflet MarkerCluster Plugin --}}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js"></script>
 
     <script>
     let customerMapInstance = null;
@@ -36,7 +40,55 @@
             maxZoom: 18
         }).addTo(customerMapInstance);
 
-        // Add customer markers
+        // Create marker cluster group
+        const markerCluster = L.markerClusterGroup({
+            // Custom cluster styling
+            iconCreateFunction: function(cluster) {
+                const count = cluster.getChildCount();
+                let size, color;
+                
+                // Determine cluster size and color
+                if (count < 5) {
+                    size = 30;
+                    color = '#fbbf24'; // Yellow
+                } else if (count < 10) {
+                    size = 40;
+                    color = '#f97316'; // Orange
+                } else {
+                    size = 50;
+                    color = '#10b981'; // Green
+                }
+                
+                return L.divIcon({
+                    html: `<div style="
+                        background: ${color};
+                        border-radius: 50%;
+                        width: ${size}px;
+                        height: ${size}px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        font-size: ${size/3}px;
+                        border: 3px solid white;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                    ">${count}</div>`,
+                    className: 'custom-cluster-icon',
+                    iconSize: [size, size],
+                    iconAnchor: [size/2, size/2]
+                });
+            },
+            // Enable spiderfy for "explode" effect
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            maxClusterRadius: 50, // Cluster markers within 50px
+            spiderfyDistanceMultiplier: 2, // Spread markers further apart when spiderfied
+            disableClusteringAtZoom: 18 // Stop clustering at street level
+        });
+
+        // Add customer markers to cluster
         customerMapData.forEach(customer => {
             if (!customer.lat || !customer.lng) return;
 
@@ -79,9 +131,14 @@
                             </div>
                         </div>
                     </div>
-                `)
-                .addTo(customerMapInstance);
+                `);
+            
+            // Add marker to cluster instead of directly to map
+            markerCluster.addLayer(marker);
         });
+
+        // Add marker cluster to map
+        customerMapInstance.addLayer(markerCluster);
 
         // Add legend
         const legend = L.control({ position: 'bottomright' });
@@ -117,6 +174,7 @@
     function toggleMapFullscreen() {
         const mapContainer = document.getElementById('mapContainer');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fullscreenOverlayBtn = document.getElementById('fullscreenOverlayBtn');
 
         if (!isMapFullscreen) {
             // Enter fullscreen
@@ -128,7 +186,34 @@
                 <span>Exit Fullscreen</span>
             `;
 
+            // Show overlay button in fullscreen
+            if (fullscreenOverlayBtn) {
+                fullscreenOverlayBtn.style.display = 'inline-flex';
+            }
+
             isMapFullscreen = true;
+
+            // Add ESC key listener
+            const escKeyListener = (e) => {
+                if (e.key === 'Escape') {
+                    toggleMapFullscreen();
+                    document.removeEventListener('keydown', escKeyListener);
+                }
+            };
+            document.addEventListener('keydown', escKeyListener);
+
+            // Add click outside to close (on the background)
+            const clickOutsideListener = (e) => {
+                if (e.target === mapContainer) {
+                    toggleMapFullscreen();
+                    document.removeEventListener('click', clickOutsideListener);
+                    document.removeEventListener('keydown', escKeyListener);
+                }
+            };
+            setTimeout(() => {
+                document.addEventListener('click', clickOutsideListener);
+            }, 100);
+
         } else {
             // Exit fullscreen
             mapContainer.classList.remove('map-fullscreen');
@@ -139,7 +224,20 @@
                 <span>Fullscreen</span>
             `;
 
+            // Hide overlay button when exiting fullscreen
+            if (fullscreenOverlayBtn) {
+                fullscreenOverlayBtn.style.display = 'none';
+            }
+
             isMapFullscreen = false;
+
+            // Clean up event listeners
+            document.removeEventListener('keydown', (e) => {
+                if (e.key === 'Escape') toggleMapFullscreen();
+            });
+            document.removeEventListener('click', (e) => {
+                if (e.target === mapContainer) toggleMapFullscreen();
+            });
         }
 
         // Reinitialize map after layout change
