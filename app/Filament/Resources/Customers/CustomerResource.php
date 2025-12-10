@@ -28,7 +28,7 @@ class CustomerResource extends Resource
     public static function table(Table $table): Table
     {
         return CustomersTable::configure($table)
-            ->modifyQueryUsing(fn ($query) => $query->with('city'));
+            ->modifyQueryUsing(fn($query) => $query->with('city'));
     }
 
     public static function getRelations(): array
@@ -46,4 +46,18 @@ class CustomerResource extends Resource
             'edit' => EditCustomer::route('/{record}/edit'),
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        // Admins always have access
+        if ($user?->hasAnyRole(['admin', 'super_admin'])) {
+            return true;
+        }
+
+        // Users must have an active package
+        return $user?->hasActivePackage() ?? false;
+    }
 }
+

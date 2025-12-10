@@ -45,4 +45,18 @@ class ProductResource extends Resource
             'edit' => EditProduct::route('/{record}/edit'),
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        // Admins always have access
+        if ($user?->hasAnyRole(['admin', 'super_admin'])) {
+            return true;
+        }
+
+        // Users must have an active package
+        return $user?->hasActivePackage() ?? false;
+    }
 }
+

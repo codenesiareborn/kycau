@@ -28,7 +28,7 @@ class SaleResource extends Resource
     public static function table(Table $table): Table
     {
         return SalesTable::configure($table)
-            ->modifyQueryUsing(fn ($query) => $query->with(['items.product', 'customer']));
+            ->modifyQueryUsing(fn($query) => $query->with(['items.product', 'customer']));
     }
 
     public static function getRelations(): array
@@ -46,4 +46,18 @@ class SaleResource extends Resource
             'edit' => EditSale::route('/{record}/edit'),
         ];
     }
+
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        // Admins always have access
+        if ($user?->hasAnyRole(['admin', 'super_admin'])) {
+            return true;
+        }
+
+        // Users must have an active package
+        return $user?->hasActivePackage() ?? false;
+    }
 }
+
