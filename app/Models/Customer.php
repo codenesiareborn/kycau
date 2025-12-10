@@ -14,6 +14,8 @@ class Customer extends Model
         'email',
         'address',
         'city_id',
+        'latitude',
+        'longitude',
     ];
 
     public function city(): BelongsTo

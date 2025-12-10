@@ -58,4 +58,24 @@ Route::middleware(['auth'])->group(function () {
         ->name('two-factor.show');
 });
 
+// API route for city search (used by map component)
+Route::get('/api/cities/search', function (Request $request) {
+    $query = $request->get('q');
+    
+    if (empty($query)) {
+        return response()->json(null);
+    }
+    
+    $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$query}%")
+        ->orWhere('name', 'LIKE', "%KOTA {$query}%")
+        ->orWhere('name', 'LIKE', "%KABUPATEN {$query}%")
+        ->first();
+    
+    return response()->json($city ? [
+        'id' => $city->id,
+        'name' => $city->name,
+        'province_name' => $city->province->name
+    ] : null);
+});
+
 require __DIR__.'/auth.php';
