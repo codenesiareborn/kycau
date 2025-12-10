@@ -15,7 +15,7 @@ class CitySalesChart extends ChartWidget
 
     protected ?string $heading = 'Kota Terbanyak Pembelian';
 
-    protected int | string | array $columnSpan = 'half';
+    protected int|string|array $columnSpan = 'half';
 
     protected function getData(): array
     {
@@ -44,6 +44,11 @@ class CitySalesChart extends ChartWidget
             $query->where('customers.city_id', $filters['city_id']);
         }
 
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('sales.user_id', $filters['user_id']);
+        }
+
         $citySales = $query
             ->select('indonesia_cities.name', DB::raw('COUNT(sales.id) as total_sales'))
             ->groupBy('indonesia_cities.id', 'indonesia_cities.name')
@@ -64,7 +69,7 @@ class CitySalesChart extends ChartWidget
                     ],
                 ],
             ],
-            'labels' => $citySales->pluck('name')->map(function($name) {
+            'labels' => $citySales->pluck('name')->map(function ($name) {
                 return str_replace(['KOTA ', 'KABUPATEN '], '', $name);
             })->toArray(),
         ];

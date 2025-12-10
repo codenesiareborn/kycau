@@ -11,7 +11,7 @@ class CreateSale extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = $data['user_id'] ?? auth()->id();
         return $data;
     }
 }

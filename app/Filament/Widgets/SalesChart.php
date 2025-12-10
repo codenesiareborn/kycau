@@ -15,7 +15,7 @@ class SalesChart extends ChartWidget
 
     protected ?string $heading = 'Total Penjualan per Bulan';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected function getData(): array
     {
@@ -42,6 +42,11 @@ class SalesChart extends ChartWidget
                 $query->whereHas('customer', function ($q) use ($filters) {
                     $q->where('city_id', $filters['city_id']);
                 });
+            }
+
+            // Apply user filter (admin only)
+            if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+                $query->where('user_id', $filters['user_id']);
             }
 
             $monthlySales = $query->sum('total_amount');

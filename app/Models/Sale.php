@@ -26,8 +26,9 @@ class Sale extends Model
     protected static function booted(): void
     {
         static::addGlobalScope('user', function (Builder $builder) {
-            if (Auth::check()) {
-                $builder->where('sales.user_id', Auth::id());
+            $user = Auth::user();
+            if ($user && !$user->hasAnyRole(['admin', 'super_admin'])) {
+                $builder->where('sales.user_id', $user->id);
             }
         });
     }

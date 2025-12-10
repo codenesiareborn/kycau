@@ -26,7 +26,7 @@ class UploadHistoryTable extends BaseWidget implements HasForms
 
     protected static ?int $sort = 6;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?string $heading = 'Riwayat Upload File';
 
@@ -97,10 +97,10 @@ class UploadHistoryTable extends BaseWidget implements HasForms
                         return $record->status_badge;
                     })
                     ->colors([
-                        'success' => fn (FileUpload $record): bool => $record->status === 'completed',
-                        'warning' => fn (FileUpload $record): bool => $record->status === 'processing',
-                        'danger' => fn (FileUpload $record): bool => $record->status === 'failed',
-                        'gray' => fn (FileUpload $record): bool => $record->status === 'pending',
+                        'success' => fn(FileUpload $record): bool => $record->status === 'completed',
+                        'warning' => fn(FileUpload $record): bool => $record->status === 'processing',
+                        'danger' => fn(FileUpload $record): bool => $record->status === 'failed',
+                        'gray' => fn(FileUpload $record): bool => $record->status === 'pending',
                     ]),
 
                 TextColumn::make('error_message')
@@ -120,7 +120,7 @@ class UploadHistoryTable extends BaseWidget implements HasForms
                         ->icon('heroicon-o-trash')
                         ->color('danger')
                         ->requiresConfirmation()
-                        ->action(fn (Collection $records) => $records->each->delete()),
+                        ->action(fn(Collection $records) => $records->each->delete()),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
@@ -130,7 +130,15 @@ class UploadHistoryTable extends BaseWidget implements HasForms
 
     protected function getTableQuery(): Builder
     {
-        return FileUpload::query()->with('user');
+        $filters = $this->pageFilters;
+        $query = FileUpload::query()->latest();
+
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        return $query;
     }
 
     protected function handleFileUpload($uploadedFile, int $year): void

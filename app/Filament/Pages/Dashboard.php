@@ -92,6 +92,14 @@ class Dashboard extends BaseDashboard
                             })
                             ->searchable(),
 
+                        Select::make('user_id')
+                            ->label('User')
+                            ->placeholder('Semua User')
+                            ->options(\App\Models\User::pluck('name', 'id'))
+                            ->searchable()
+                            ->visible(fn() => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
+                            ->helperText('Filter data berdasarkan user'),
+
                         ViewField::make('clear_button')
                             ->view('filament.forms.components.clear-filters-button')
                             ->columnSpanFull(),
@@ -108,6 +116,7 @@ class Dashboard extends BaseDashboard
             'date_to' => null,
             'product_id' => null,
             'city_id' => null,
+            'user_id' => null,
         ];
         $this->dispatch('refresh');
     }

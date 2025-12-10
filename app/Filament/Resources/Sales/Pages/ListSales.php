@@ -7,6 +7,7 @@ use App\Imports\SalesImport;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -26,6 +27,14 @@ class ListSales extends ListRecords
                 ->icon('heroicon-m-arrow-down-tray')
                 ->color('info')
                 ->form([
+                    Select::make('user_id')
+                        ->label('User')
+                        ->options(\App\Models\User::pluck('name', 'id'))
+                        ->searchable()
+                        ->preload()
+                        ->default(fn() => auth()->id())
+                        ->visible(fn() => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
+                        ->helperText('Pilih user yang akan memiliki data import ini'),
                     FileUpload::make('file')
                         ->label('File Excel')
                         ->required()
@@ -44,8 +53,9 @@ class ListSales extends ListRecords
                 ->action(function (array $data): void {
                     $file = $data['file'] ?? null;
                     $year = isset($data['year']) ? (int) $data['year'] : null;
+                    $userId = $data['user_id'] ?? auth()->id();
 
-                    if (! $file instanceof TemporaryUploadedFile) {
+                    if (!$file instanceof TemporaryUploadedFile) {
                         Notification::make()
                             ->title('Tidak ada file')
                             ->body('Silakan pilih file XLSX terlebih dahulu.')
@@ -66,7 +76,7 @@ class ListSales extends ListRecords
                     }
 
                     try {
-                        Excel::import(new SalesImport($year), $file->getRealPath());
+                        Excel::import(new SalesImport($year, $userId), $file->getRealPath());
 
                         Notification::make()
                             ->title('Import berhasil')

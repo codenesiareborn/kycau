@@ -43,6 +43,11 @@ class DashboardOverview extends StatsOverviewWidget
             });
         }
 
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
         $currentMonthSales = (clone $query)
             ->whereMonth('sale_date', Carbon::now()->month)
             ->whereYear('sale_date', Carbon::now()->year)
@@ -74,27 +79,33 @@ class DashboardOverview extends StatsOverviewWidget
         if (!empty($filters['city_id'])) {
             $customerQuery->where('city_id', $filters['city_id']);
         }
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $customerQuery->where('user_id', $filters['user_id']);
+        }
 
         $avgTransactionPerCustomer = $customerQuery->withCount('sales')
-            ->with(['sales' => function ($q) use ($filters) {
-                if (!empty($filters['date_from'])) {
-                    $q->whereDate('sale_date', '>=', $filters['date_from']);
+            ->with([
+                'sales' => function ($q) use ($filters) {
+                    if (!empty($filters['date_from'])) {
+                        $q->whereDate('sale_date', '>=', $filters['date_from']);
+                    }
+                    if (!empty($filters['date_to'])) {
+                        $q->whereDate('sale_date', '<=', $filters['date_to']);
+                    }
+                    if (!empty($filters['product_id'])) {
+                        $q->whereHas('items', function ($query) use ($filters) {
+                            $query->where('product_id', $filters['product_id']);
+                        });
+                    }
                 }
-                if (!empty($filters['date_to'])) {
-                    $q->whereDate('sale_date', '<=', $filters['date_to']);
-                }
-                if (!empty($filters['product_id'])) {
-                    $q->whereHas('items', function ($query) use ($filters) {
-                        $query->where('product_id', $filters['product_id']);
-                    });
-                }
-            }])
+            ])
             ->get()
             ->filter(fn($customer) => $customer->sales->count() > 0)
             ->map(fn($customer) => $customer->sales->sum('total_amount') / $customer->sales->count())
             ->avg();
 
-        $avgUnitsPerCustomer = $customerQuery->with(['sales.items' => function ($q) use ($filters) {
+        $avgUnitsPerCustomer = $customerQuery->with([
+            'sales.items' => function ($q) use ($filters) {
                 if (!empty($filters['date_from']) || !empty($filters['date_to'])) {
                     $q->whereHas('sale', function ($query) use ($filters) {
                         if (!empty($filters['date_from'])) {
@@ -108,7 +119,8 @@ class DashboardOverview extends StatsOverviewWidget
                 if (!empty($filters['product_id'])) {
                     $q->where('product_id', $filters['product_id']);
                 }
-            }])
+            }
+        ])
             ->get()
             ->filter(function ($customer) {
                 return $customer->sales->flatMap->items->count() > 0;

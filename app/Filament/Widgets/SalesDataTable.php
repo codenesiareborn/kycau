@@ -18,7 +18,7 @@ class SalesDataTable extends BaseWidget
 
     protected static ?int $sort = 5;
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     protected static ?string $heading = 'Data Penjualan';
 
@@ -57,36 +57,38 @@ class SalesDataTable extends BaseWidget
 
                 TextColumn::make('customer.city.name')
                     ->label('KOTA')
-                    ->getStateUsing(fn ($record) =>
+                    ->getStateUsing(
+                        fn($record) =>
                         $record->customer?->city?->name
-                            ? str_replace(['KOTA ', 'KABUPATEN '], '', $record->customer->city->name)
-                            : '-'
+                        ? str_replace(['KOTA ', 'KABUPATEN '], '', $record->customer->city->name)
+                        : '-'
                     )
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('items_summary')
                     ->label('PRODUK')
-                    ->getStateUsing(fn ($record) => $record->items
-                        ->loadMissing('product')
-                        ->map(function ($item) {
-                            return $item->product?->name;
-                        })
-                        ->filter()
-                        ->unique()
-                        ->values()
-                        ->join(', ')
+                    ->getStateUsing(
+                        fn($record) => $record->items
+                            ->loadMissing('product')
+                            ->map(function ($item) {
+                                return $item->product?->name;
+                            })
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->join(', ')
                     ),
 
                 TextColumn::make('total_quantity')
                     ->label('QTY')
-                    ->getStateUsing(fn ($record) => $record->items->sum('quantity'))
+                    ->getStateUsing(fn($record) => $record->items->sum('quantity'))
                     ->alignCenter(),
 
                 TextColumn::make('total_amount')
                     ->label('TOTAL PEMBELIAN')
                     ->numeric()
-                    ->formatStateUsing(fn ($state): string => 'Rp ' . number_format($state, 0, ',', '.'))
+                    ->formatStateUsing(fn($state): string => 'Rp ' . number_format($state, 0, ',', '.'))
                     ->sortable()
                     ->alignEnd(),
             ])
@@ -141,6 +143,11 @@ class SalesDataTable extends BaseWidget
             $query->whereHas('customer', function ($q) use ($filters) {
                 $q->where('city_id', $filters['city_id']);
             });
+        }
+
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('user_id', $filters['user_id']);
         }
 
         return $query;

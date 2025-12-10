@@ -14,7 +14,7 @@ class ProductSalesChart extends ChartWidget
 
     protected ?string $heading = 'Produk Terlaris';
 
-    protected int | string | array $columnSpan = 'half';
+    protected int|string|array $columnSpan = 'half';
 
     protected function getData(): array
     {
@@ -41,6 +41,11 @@ class ProductSalesChart extends ChartWidget
         if (!empty($filters['city_id'])) {
             $query->join('customers', 'sales.customer_id', '=', 'customers.id')
                 ->where('customers.city_id', $filters['city_id']);
+        }
+
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('sales.user_id', $filters['user_id']);
         }
 
         $productSales = $query

@@ -16,7 +16,7 @@ class CustomerMap extends Widget
 
     protected string $view = 'filament.widgets.customer-map';
 
-    protected int | string | array $columnSpan = 'full';
+    protected int|string|array $columnSpan = 'full';
 
     public function getCustomerMapData(): array
     {
@@ -31,6 +31,7 @@ class CustomerMap extends Widget
             ->when(!empty($filters['date_from']), fn($q) => $q->whereDate('sales.sale_date', '>=', $filters['date_from']))
             ->when(!empty($filters['date_to']), fn($q) => $q->whereDate('sales.sale_date', '<=', $filters['date_to']))
             ->when(!empty($filters['city_id']), fn($q) => $q->where('customers.city_id', $filters['city_id']))
+            ->when(!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin']), fn($q) => $q->where('sales.user_id', $filters['user_id']))
             ->select('sales.customer_id', DB::raw('SUM(sales.total_amount) as total_sales'))
             ->groupBy('sales.customer_id')
             ->orderBy('total_sales', 'desc')
@@ -53,6 +54,11 @@ class CustomerMap extends Widget
             $query->whereHas('items', function ($q) use ($filters) {
                 $q->where('product_id', $filters['product_id']);
             });
+        }
+
+        // Apply user filter (admin only)
+        if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('user_id', $filters['user_id']);
         }
 
         $sales = $query->get();
@@ -96,7 +102,7 @@ class CustomerMap extends Widget
                 'lng' => $customer['lng'],
                 'amount' => $customer['total_amount'],
                 'products' => implode(', ', array_slice($customer['products'], 0, 3)) .
-                             (count($customer['products']) > 3 ? '...' : ''),
+                    (count($customer['products']) > 3 ? '...' : ''),
             ];
         }, $customerData));
     }

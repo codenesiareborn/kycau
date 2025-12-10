@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -12,6 +13,15 @@ class ProductForm
     {
         return $schema
             ->components([
+                Select::make('user_id')
+                    ->label('User')
+                    ->relationship('user', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required()
+                    ->default(fn() => auth()->id())
+                    ->visible(fn() => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
+                    ->helperText('Pilih user yang akan memiliki product ini'),
                 TextInput::make('name')
                     ->label('Nama')
                     ->required()

@@ -28,18 +28,21 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     private float $currentSaleRunningTotal = 0.0;
 
-    public function __construct(private readonly int $year)
+    private ?int $userId = null;
+
+    public function __construct(private readonly int $year, ?int $userId = null)
     {
+        $this->userId = $userId ?? auth()->id();
     }
 
     public function collection(Collection $rows): void
     {
         foreach ($rows as $row) {
-            if (! $row instanceof Collection) {
+            if (!$row instanceof Collection) {
                 $row = collect($row);
             }
 
-            if ($row->filter(fn ($value) => $this->stringValue($value) !== '')->isEmpty()) {
+            if ($row->filter(fn($value) => $this->stringValue($value) !== '')->isEmpty()) {
                 continue;
             }
 
@@ -77,20 +80,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             $saleDate = $isNewSale ? $this->buildSaleDate($monthValue, $dayValue) : null;
             $saleNumber = $isNewSale ? $this->buildSaleNumber($monthValue, $rawNumber) : null;
 
-            DB::transaction(function () use (
-                $isNewSale,
-                $monthValue,
-                $saleDate,
-                $saleNumber,
-                $customerName,
-                $customerEmail,
-                $customerPhone,
-                $customerAddress,
-                $customerCityName,
-                $productNames,
-                $quantity,
-                $lineTotal
-            ): void {
+            DB::transaction(function () use ($isNewSale, $monthValue, $saleDate, $saleNumber, $customerName, $customerEmail, $customerPhone, $customerAddress, $customerCityName, $productNames, $quantity, $lineTotal): void {
                 if ($isNewSale) {
                     $this->startNewSale(
                         $monthValue,
@@ -104,7 +94,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                     );
                 }
 
-                if (! $this->currentSale || $productNames === []) {
+                if (!$this->currentSale || $productNames === []) {
                     return;
                 }
 
@@ -113,7 +103,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                 foreach ($productNames as $index => $name) {
                     $product = Product::firstOrCreate(
                         ['name' => $name],
-                        ['description' => null, 'price' => null]
+                        ['user_id' => $this->userId, 'description' => null, 'price' => null]
                     );
 
                     $lineTotalForItem = $this->determineLineTotal($perItemTotal[$index] ?? 0.0);
@@ -168,6 +158,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
         );
 
         $this->currentSale = Sale::create([
+            'user_id' => $this->userId,
             'month' => Str::upper($monthValue),
             'sale_date' => $saleDate,
             'sale_number' => $saleNumber,
@@ -191,7 +182,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     private function updateSaleTotal(?float $lineTotal): void
     {
-        if (! $this->currentSale || $lineTotal === null || $lineTotal <= 0) {
+        if (!$this->currentSale || $lineTotal === null || $lineTotal <= 0) {
             return;
         }
 
@@ -220,7 +211,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
         $segments = preg_split('/\r?\n+/', $value) ?: [];
 
         return collect($segments)
-            ->map(fn ($segment) => trim((string) $segment))
+            ->map(fn($segment) => trim((string) $segment))
             ->filter()
             ->values()
             ->all();
@@ -249,7 +240,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
         }
 
         return array_map(
-            fn ($value) => min(self::MAX_TOTAL_AMOUNT, max(0.0, $value)),
+            fn($value) => min(self::MAX_TOTAL_AMOUNT, max(0.0, $value)),
             $totals
         );
     }
@@ -471,11 +462,11 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             return (string) $value;
         }
 
-        if (! is_string($value)) {
+        if (!is_string($value)) {
             return null;
         }
 
-        if (! preg_match('/\d/', $value)) {
+        if (!preg_match('/\d/', $value)) {
             return null;
         }
 
@@ -527,7 +518,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             return null;
         }
 
-        if (! is_numeric($value)) {
+        if (!is_numeric($value)) {
             return null;
         }
 
@@ -578,16 +569,17 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             $customer = Customer::where('email', $email)->first();
         }
 
-        if (! $customer && $phone) {
+        if (!$customer && $phone) {
             $customer = Customer::where('phone', $phone)->first();
         }
 
-        if (! $customer) {
+        if (!$customer) {
             $customer = Customer::where('name', $name)->first();
         }
 
-        if (! $customer) {
+        if (!$customer) {
             $customer = Customer::create([
+                'user_id' => $this->userId,
                 'name' => $name,
                 'email' => $email ?: null,
                 'phone' => $phone ?: null,
