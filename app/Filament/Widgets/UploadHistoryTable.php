@@ -30,6 +30,8 @@ class UploadHistoryTable extends BaseWidget implements HasForms
 
     protected static ?string $heading = 'Riwayat Upload File';
 
+    public ?array $pageFilters = null;
+
     protected function getTableActions(): array
     {
         return [
