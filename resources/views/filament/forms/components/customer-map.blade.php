@@ -12,33 +12,36 @@
 </script>
 
 <div x-data="customerMap({{ $latitude ? $latitude : 'null' }}, {{ $longitude ? $longitude : 'null' }})" x-init="setTimeout(() => init(), 500)" class="w-full" wire:ignore>
-    <!-- Search Box Section -->
-    <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
+    <!-- Search Box Section - Inline Styles with Filament Design Tokens -->
+    <div style="margin-bottom: 1rem;">
+        <label style="display: block; font-size: 0.875rem; font-weight: 500; line-height: 1.25rem; color: rgb(17, 24, 39); margin-bottom: 0.5rem;">
             🔍 Cari Alamat
         </label>
-        <div class="flex space-x-2">
+        <div style="display: flex; gap: 0.5rem;">
             <input 
                 type="text" 
                 x-model="searchQuery"
                 @keyup.enter="searchAddress()"
                 @input.debounce.500ms="searchAddress()"
                 placeholder="Masukkan alamat (contoh: Jalan Sudirman Jakarta)"
-                style="flex: 1; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none;"
-                class="form-input"
+                style="flex: 1; border: 1px solid rgb(209, 213, 219); border-radius: 0.5rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; outline: none; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);"
+                onfocus="this.style.borderColor='rgb(59, 130, 246)'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                onblur="this.style.borderColor='rgb(209, 213, 219)'; this.style.boxShadow='0 1px 2px 0 rgba(0, 0, 0, 0.05)';"
             >
             <button 
                 @click="searchAddress()"
                 :disabled="searching"
-                style="padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 6px; font-size: 14px; cursor: pointer;"
-                class="btn-primary"
-                :style="searching ? 'background: #9ca3af; cursor: not-allowed;' : 'background: #2563eb; cursor: pointer;'"
+                style="padding: 0.5rem 1rem; background-color: rgb(37, 99, 235); color: white; border: none; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 500; cursor: pointer; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);"
+                onmouseover="if(!this.disabled) this.style.backgroundColor='rgb(29, 78, 216)';"
+                onmouseout="if(!this.disabled) this.style.backgroundColor='rgb(37, 99, 235)';"
+                onfocus="this.style.outline='none'; this.style.boxShadow='0 0 0 3px rgba(59, 130, 246, 0.1)';"
+                onblur="this.style.boxShadow='0 1px 2px 0 rgba(0, 0, 0, 0.05)';"
             >
                 <span x-show="!searching">Cari</span>
                 <span x-show="searching">Mencari...</span>
             </button>
         </div>
-        <div x-show="searchError" style="margin-top: 8px; font-size: 12px; color: #dc2626;" x-text="searchError"></div>
+        <div x-show="searchError" style="margin-top: 0.5rem; font-size: 0.875rem; color: rgb(220, 38, 38);" x-text="searchError"></div>
     </div>
     
     <!-- Map container with larger size -->

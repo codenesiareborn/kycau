@@ -65,13 +65,21 @@ select:focus[data-flux-control] {
     @apply size-4;
 } */
 
-/* Filament Stats Widget Custom Styles */
+/* Filament Stats Widget Custom Styles - Target Specific Value Element */
+.fi-wi-stats-overview-stat-value {
+    font-size: 0.875rem !important; /* 14px - 50% reduction */
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+/* Large cards override */
 .stats-overview-widget-large .fi-wi-stats-overview-stat-value {
-    font-size: 1.875rem !important; /* 30px */
+    font-size: 0.875rem !important; /* 14px - 50% reduction */
     font-weight: 700 !important;
 }
 
+/* Small cards override */
 .stats-overview-widget-small .fi-wi-stats-overview-stat-value {
-    font-size: 1.25rem !important; /* 20px */
+    font-size: 0.75rem !important; /* 12px - 50% reduction */
     font-weight: 600 !important;
 }
