@@ -4,7 +4,8 @@
             Peta Sebaran Customer
         </x-slot>
 
-        <x-slot name="headerEnd">
+        <div class="flex justify-between items-center mb-8">
+            <div></div>
             <button
                 type="button"
                 class="fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-gray fi-btn-color-gray fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 ring-1 ring-gray-950/10 dark:ring-white/20"
@@ -16,7 +17,7 @@
                 </svg>
                 <span>Fullscreen</span>
             </button>
-        </x-slot>
+        </div>
 
         <div
             id="mapContainer"
@@ -39,6 +40,17 @@
                 }
             "
         >
+            <!-- Fullscreen overlay button (hidden by default, shown in fullscreen) -->
+            <button
+                type="button"
+                class="fullscreen-overlay-btn fi-btn relative grid-flow-col items-center justify-center font-semibold outline-none transition duration-75 focus-visible:ring-2 rounded-lg fi-color-gray fi-btn-color-gray fi-size-md fi-btn-size-md gap-1.5 px-3 py-2 text-sm inline-grid shadow-sm bg-white text-gray-950 hover:bg-gray-50 dark:bg-white/5 dark:text-white dark:hover:bg-white/10 ring-1 ring-gray-950/10 dark:ring-white/20"
+                style="display: none;"
+                onclick="toggleMapFullscreen()"
+                id="fullscreenOverlayBtn"
+            >
+                <span>Exit Fullscreen</span>
+            </button>
+            
             <div id="customerMap" wire:ignore style="height: 500px; width: 100%; border-radius: 8px; overflow: hidden;"></div>
         </div>
     </x-filament::section>

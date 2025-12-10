@@ -174,6 +174,7 @@
     function toggleMapFullscreen() {
         const mapContainer = document.getElementById('mapContainer');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const fullscreenOverlayBtn = document.getElementById('fullscreenOverlayBtn');
 
         if (!isMapFullscreen) {
             // Enter fullscreen
@@ -185,7 +186,34 @@
                 <span>Exit Fullscreen</span>
             `;
 
+            // Show overlay button in fullscreen
+            if (fullscreenOverlayBtn) {
+                fullscreenOverlayBtn.style.display = 'inline-flex';
+            }
+
             isMapFullscreen = true;
+
+            // Add ESC key listener
+            const escKeyListener = (e) => {
+                if (e.key === 'Escape') {
+                    toggleMapFullscreen();
+                    document.removeEventListener('keydown', escKeyListener);
+                }
+            };
+            document.addEventListener('keydown', escKeyListener);
+
+            // Add click outside to close (on the background)
+            const clickOutsideListener = (e) => {
+                if (e.target === mapContainer) {
+                    toggleMapFullscreen();
+                    document.removeEventListener('click', clickOutsideListener);
+                    document.removeEventListener('keydown', escKeyListener);
+                }
+            };
+            setTimeout(() => {
+                document.addEventListener('click', clickOutsideListener);
+            }, 100);
+
         } else {
             // Exit fullscreen
             mapContainer.classList.remove('map-fullscreen');
@@ -196,7 +224,20 @@
                 <span>Fullscreen</span>
             `;
 
+            // Hide overlay button when exiting fullscreen
+            if (fullscreenOverlayBtn) {
+                fullscreenOverlayBtn.style.display = 'none';
+            }
+
             isMapFullscreen = false;
+
+            // Clean up event listeners
+            document.removeEventListener('keydown', (e) => {
+                if (e.key === 'Escape') toggleMapFullscreen();
+            });
+            document.removeEventListener('click', (e) => {
+                if (e.target === mapContainer) toggleMapFullscreen();
+            });
         }
 
         // Reinitialize map after layout change
