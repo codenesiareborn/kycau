@@ -7,6 +7,55 @@ use Livewire\Volt\Volt;
 use App\Http\Controllers\Auth\CustomAdminLoginController;
 use App\Http\Controllers\Auth\CustomAdminRegisterController;
 
+Route::get('/test-map-data', function() {
+    echo "=== ANALISIS DATA PENJUALAN VS PIN PETA ===\n\n";
+    
+    // Total sales records
+    $totalSales = \DB::table('sales')->count();
+    echo "1. Total sales records: {$totalSales}\n";
+    
+    // Unique customers with sales
+    $uniqueCustomersWithSales = \DB::table('sales')->distinct('customer_id')->count('customer_id');
+    echo "2. Unique customers with sales: {$uniqueCustomersWithSales}\n";
+    
+    // Customers with city_id
+    $customersWithCity = \DB::table('sales')
+        ->join('customers', 'sales.customer_id', '=', 'customers.id')
+        ->whereNotNull('customers.city_id')
+        ->distinct('sales.customer_id')
+        ->count('sales.customer_id');
+    echo "3. Customers with city_id assigned: {$customersWithCity}\n";
+    
+    // Customers with valid coordinates (using join with cities)
+    $customersWithCoords = \DB::table('sales')
+        ->join('customers', 'sales.customer_id', '=', 'customers.id')
+        ->join('indonesia_cities', 'customers.city_id', '=', 'indonesia_cities.id')
+        ->whereNotNull('customers.city_id')
+        ->distinct('sales.customer_id')
+        ->count('sales.customer_id');
+    echo "4. Customers with valid city coordinates: {$customersWithCoords}\n";
+    
+    // Current map data count
+    $mapData = (new \App\Filament\Widgets\CustomerMap)->getCustomerMapData();
+    echo "5. Actual map pins displayed: " . count($mapData) . "\n";
+    
+    echo "\n=== ANALISIS PERBEDAAN ===\n";
+    echo "Sales per customer average: " . round($totalSales / $uniqueCustomersWithSales, 2) . "\n";
+    echo "Customers excluded due to missing city_id: " . ($uniqueCustomersWithSales - $customersWithCity) . "\n";
+    
+    // Sample customers without city
+    $withoutCity = \DB::table('sales')
+        ->join('customers', 'sales.customer_id', '=', 'customers.id')
+        ->whereNull('customers.city_id')
+        ->distinct('sales.customer_id')
+        ->limit(5)
+        ->pluck('sales.customer_id');
+    
+    if ($withoutCity->count() > 0) {
+        echo "\nSample customers without city_id: " . $withoutCity->implode(', ') . "\n";
+    }
+});
+
 Route::get('/', function () {
     return redirect('/admin');
 })->name('home');

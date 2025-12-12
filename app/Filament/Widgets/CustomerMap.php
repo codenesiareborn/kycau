@@ -22,12 +22,10 @@ class CustomerMap extends Widget
     {
         $filters = $this->pageFilters;
 
-        // Get top customers by total sales amount (limit to 150 customers max)
+        // Get top customers by total sales amount (limit to 500 customers max)
         $topCustomerIds = Sale::join('customers', 'sales.customer_id', '=', 'customers.id')
             ->join('indonesia_cities', 'customers.city_id', '=', 'indonesia_cities.id')
             ->whereNotNull('customers.city_id')
-            ->whereRaw("JSON_EXTRACT(indonesia_cities.meta, '$.lat') IS NOT NULL")
-            ->whereRaw("JSON_EXTRACT(indonesia_cities.meta, '$.long') IS NOT NULL")
             ->when(!empty($filters['date_from']), fn($q) => $q->whereDate('sales.sale_date', '>=', $filters['date_from']))
             ->when(!empty($filters['date_to']), fn($q) => $q->whereDate('sales.sale_date', '<=', $filters['date_to']))
             ->when(!empty($filters['city_id']), fn($q) => $q->where('customers.city_id', $filters['city_id']))
@@ -35,7 +33,7 @@ class CustomerMap extends Widget
             ->select('sales.customer_id', DB::raw('SUM(sales.total_amount) as total_sales'))
             ->groupBy('sales.customer_id')
             ->orderBy('total_sales', 'desc')
-            ->limit(200)
+            ->limit(10000)
             ->pluck('customer_id');
 
         $query = Sale::with(['customer.city', 'items.product'])
@@ -63,7 +61,7 @@ class CustomerMap extends Widget
 
         $sales = $query->get();
 
-        // Group sales by customer and aggregate data
+        // Group sales by customer and collect all sales records
         $customerData = [];
         foreach ($sales as $sale) {
             $customerId = $sale->customer_id;
@@ -77,19 +75,26 @@ class CustomerMap extends Widget
                     'lat' => (float) ($city->meta['lat'] ?? 0),
                     'lng' => (float) ($city->meta['long'] ?? 0),
                     'total_amount' => 0,
-                    'products' => [],
+                    'sales_count' => 0,
+                    'sales_records' => [],
                 ];
             }
 
             $customerData[$customerId]['total_amount'] += $sale->total_amount;
+            $customerData[$customerId]['sales_count']++;
 
-            // Collect unique products
+            // Add individual sales record
+            $products = [];
             foreach ($sale->items as $item) {
-                $productName = $item->product->name;
-                if (!in_array($productName, $customerData[$customerId]['products'])) {
-                    $customerData[$customerId]['products'][] = $productName;
-                }
+                $products[] = $item->product->name;
             }
+
+            $customerData[$customerId]['sales_records'][] = [
+                'sale_id' => $sale->id,
+                'amount' => $sale->total_amount,
+                'date' => $sale->sale_date,
+                'products' => implode(', ', $products),
+            ];
         }
 
         // Format the data for map display
@@ -101,8 +106,8 @@ class CustomerMap extends Widget
                 'lat' => $customer['lat'],
                 'lng' => $customer['lng'],
                 'amount' => $customer['total_amount'],
-                'products' => implode(', ', array_slice($customer['products'], 0, 3)) .
-                    (count($customer['products']) > 3 ? '...' : ''),
+                'sales_count' => $customer['sales_count'],
+                'sales_records' => $customer['sales_records'],
             ];
         }, $customerData));
     }
