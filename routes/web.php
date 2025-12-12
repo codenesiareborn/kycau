@@ -111,7 +111,11 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/api/cities/search', function (Request $request) {
     $query = $request->get('q');
     
+    // Debug logging
+    \Log::info("City search API called with query: " . $query);
+    
     if (empty($query)) {
+        \Log::info("Empty query, returning null");
         return response()->json(null);
     }
     
@@ -123,10 +127,32 @@ Route::get('/api/cities/search', function (Request $request) {
         'Bantul Regency' => 'Bantul',
         'Kulon Progo Regency' => 'Kulon Progo',
         'Gunung Kidul Regency' => 'Gunung Kidul',
+        'Sumbawa' => 'SUMBAWA',
+        'Sumbawa Besar' => 'SUMBAWA BESAR',
+        'Bima' => 'BIMA',
+        'Dompu' => 'DOMPU',
+        'West Nusa Tenggara' => 'NUSA TENGGARA BARAT',
+        'Lombok' => 'LOMBOK',
+        'Mataram' => 'MATARAM',
+        'Central Jakarta' => 'JAKARTA PUSAT',
+        'South Jakarta' => 'JAKARTA SELATAN',
+        'North Jakarta' => 'JAKARTA UTARA',
+        'East Jakarta' => 'JAKARTA TIMUR',
+        'West Jakarta' => 'JAKARTA BARAT',
+        'Jakarta' => 'JAKARTA PUSAT',
+        'Gunungkidul Regency' => 'GUNUNGKIDUL',
+        'Special Region of Yogyakarta' => 'YOGYAKARTA',
+        'Sleman Regency' => 'SLEMAN',
+        'Bantul Regency' => 'BANTUL',
+        'Kulon Progo Regency' => 'KULON PROGO'
     ];
     
     // Apply translation if found
     $translatedQuery = $translations[$query] ?? $query;
+    
+    if ($translatedQuery !== $query) {
+        \Log::info("Query translated from '{$query}' to '{$translatedQuery}'");
+    }
     
     // Try exact match first with translated query
     $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$translatedQuery}%")
@@ -136,10 +162,17 @@ Route::get('/api/cities/search', function (Request $request) {
     
     // If not found, try with original query as fallback
     if (!$city && $translatedQuery !== $query) {
+        \Log::info("No match with translated query, trying original: '{$query}'");
         $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$query}%")
             ->orWhere('name', 'LIKE', "%KOTA {$query}%")
             ->orWhere('name', 'LIKE', "%KABUPATEN {$query}%")
             ->first();
+    }
+    
+    if ($city) {
+        \Log::info("City found: " . $city->name . " (ID: " . $city->id . ")");
+    } else {
+        \Log::info("No city found for query: '{$query}'");
     }
     
     return response()->json($city ? [

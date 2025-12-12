@@ -37,22 +37,28 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     public function collection(Collection $rows): void
     {
-        foreach ($rows as $row) {
+        $processedRows = 0;
+        $skippedRows = 0;
+        
+        foreach ($rows as $index => $row) {
             if (!$row instanceof Collection) {
                 $row = collect($row);
             }
 
             if ($row->filter(fn($value) => $this->stringValue($value) !== '')->isEmpty()) {
+                $skippedRows++;
                 continue;
             }
 
             if ($this->isHeaderRow($row)) {
                 $this->resolveColumnMap($row);
-
+                \Log::info("Headers detected. Column map: " . json_encode($this->columnMap));
                 continue;
             }
 
             if ($this->columnMap === []) {
+                $skippedRows++;
+                \Log::info("Skipping row {$index}: No column map resolved. First cell: " . $this->stringValue($row->get(0)));
                 continue;
             }
 
@@ -72,53 +78,68 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             $quantity = max(1, $this->parseInteger($this->getValue($row, 'quantity')));
             $lineTotal = $this->parseNumeric($this->getValue($row, 'total'));
 
-            $isNewSale = $monthValue !== ''
-                || $this->stringValue($dayValue) !== ''
-                || $rawNumber !== ''
-                || $customerName !== '';
+            // Log debugging info
+            \Log::info("Processing row {$index}: {$customerName} | Month: {$monthValue} | Day: {$dayValue} | Number: {$rawNumber}");
+
+            // Fixed logic: Check if this is a new sale based on ID or name
+            $isNewSale = $customerName !== '' && 
+                        ($this->stringValue($this->getValue($row, 'id')) !== '' || 
+                         $rawNumber !== '' || 
+                         $monthValue !== '');
 
             $saleDate = $isNewSale ? $this->buildSaleDate($monthValue, $dayValue) : null;
             $saleNumber = $isNewSale ? $this->buildSaleNumber($monthValue, $rawNumber) : null;
 
-            DB::transaction(function () use ($isNewSale, $monthValue, $saleDate, $saleNumber, $customerName, $customerEmail, $customerPhone, $customerAddress, $customerCityName, $productNames, $quantity, $lineTotal): void {
-                if ($isNewSale) {
-                    $this->startNewSale(
-                        $monthValue,
-                        $saleDate,
-                        $saleNumber,
-                        $customerName,
-                        $customerEmail,
-                        $customerPhone,
-                        $customerAddress,
-                        $customerCityName
-                    );
-                }
+            try {
+                DB::transaction(function () use ($isNewSale, $monthValue, $saleDate, $saleNumber, $customerName, $customerEmail, $customerPhone, $customerAddress, $customerCityName, $productNames, $quantity, $lineTotal, $index): void {
+                    if ($isNewSale) {
+                        \Log::info("Starting new sale for: {$customerName}");
+                        $this->startNewSale(
+                            $monthValue,
+                            $saleDate,
+                            $saleNumber,
+                            $customerName,
+                            $customerEmail,
+                            $customerPhone,
+                            $customerAddress,
+                            $customerCityName
+                        );
+                    }
 
-                if (!$this->currentSale || $productNames === []) {
-                    return;
-                }
+                    if (!$this->currentSale || $productNames === []) {
+                        \Log::info("Skipping row {$index}: No current sale or no products");
+                        return;
+                    }
 
-                $perItemTotal = $this->allocateLineTotals($lineTotal, count($productNames));
+                    $perItemTotal = $this->allocateLineTotals($lineTotal, count($productNames));
 
-                foreach ($productNames as $index => $name) {
-                    $product = Product::firstOrCreate(
-                        ['name' => $name],
-                        ['user_id' => $this->userId, 'description' => null, 'price' => null]
-                    );
+                    foreach ($productNames as $index => $name) {
+                        $product = Product::firstOrCreate(
+                            ['name' => $name],
+                            ['user_id' => $this->userId, 'description' => null, 'price' => null]
+                        );
 
-                    $lineTotalForItem = $this->determineLineTotal($perItemTotal[$index] ?? 0.0);
+                        $lineTotalForItem = $this->determineLineTotal($perItemTotal[$index] ?? 0.0);
 
-                    SaleItem::create([
-                        'sale_id' => $this->currentSale->id,
-                        'product_id' => $product->id,
-                        'quantity' => $quantity,
-                        'line_total' => $lineTotalForItem,
-                    ]);
+                        SaleItem::create([
+                            'sale_id' => $this->currentSale->id,
+                            'product_id' => $product->id,
+                            'quantity' => $quantity,
+                            'line_total' => $lineTotalForItem,
+                        ]);
 
-                    $this->updateSaleTotal($lineTotalForItem);
-                }
-            });
+                        $this->updateSaleTotal($lineTotalForItem);
+                    }
+                });
+                
+                $processedRows++;
+            } catch (\Exception $e) {
+                \Log::error("Error processing row {$index}: " . $e->getMessage());
+                $skippedRows++;
+            }
         }
+        
+        \Log::info("Import completed. Processed: {$processedRows}, Skipped: {$skippedRows}");
     }
 
     public function batchSize(): int
@@ -407,7 +428,10 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     private function isHeaderRow(Collection $row): bool
     {
-        return strcasecmp($this->stringValue($row->get(0)), 'BLN') === 0;
+        $firstCell = $this->stringValue($row->get(0));
+        return strcasecmp($firstCell, 'BLN') === 0 || 
+               strcasecmp($firstCell, 'ID') === 0 || 
+               strcasecmp($firstCell, 'NAMA') === 0;
     }
 
     private function resolveColumnMap(Collection $row): void
@@ -438,6 +462,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
     private function headerSynonyms(): array
     {
         return [
+            'id' => ['id'],
             'month' => ['bln', 'bulan', 'month'],
             'day' => ['tgl', 'tanggal', 'date', 'day'],
             'number' => ['no', 'nomor', 'number'],
@@ -446,6 +471,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             'email' => ['email'],
             'address' => ['alamat', 'address'],
             'city' => ['kota', 'kota-kabupaten', 'city'],
+            'province' => ['provinsi', 'province'],
             'product' => ['produk', 'product'],
             'quantity' => ['qty', 'jmlh', 'jumlah', 'quantity'],
             'total' => ['total-pembelian', 'total', 'grand-total'],
