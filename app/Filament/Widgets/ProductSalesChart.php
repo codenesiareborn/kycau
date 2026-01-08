@@ -24,6 +24,12 @@ class ProductSalesChart extends ChartWidget
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id');
 
+        // Apply automatic user filter for non-admin users
+        $user = auth()->user();
+        if ($user && !$user->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('sales.user_id', $user->id);
+        }
+
         // Apply date filters
         if (!empty($filters['date_from'])) {
             $query->whereDate('sales.sale_date', '>=', $filters['date_from']);
