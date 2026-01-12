@@ -148,14 +148,13 @@
                     </div>
                 `);
             
-            // Zoom and center on click
+            // Zoom and center on click, then open popup after animation
             marker.on('click', (e) => {
-                customerMapInstance.setView(e.latlng, 18);
-            });
-
-            // Zoom and center on click
-            marker.on('click', (e) => {
-                customerMapInstance.setView(e.latlng, 18);
+                const latlng = e.latlng;
+                customerMapInstance.flyTo(latlng, 16, { duration: 0.5 });
+                setTimeout(() => {
+                    marker.openPopup();
+                }, 500);
             });
 
             // Add marker to cluster instead of directly to map
