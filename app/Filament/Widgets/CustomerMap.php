@@ -35,7 +35,7 @@ class CustomerMap extends Widget
             ->select('sales.customer_id', DB::raw('SUM(sales.total_amount) as total_sales'))
             ->groupBy('sales.customer_id')
             ->orderBy('total_sales', 'desc')
-            ->limit(200)
+            ->limit(300)
             ->pluck('customer_id');
 
         $query = Sale::with(['customer.city', 'items.product'])
@@ -74,8 +74,8 @@ class CustomerMap extends Widget
                     'name' => $sale->customer->name,
                     'address' => $sale->customer->address,
                     'city_name' => str_replace(['KOTA ', 'KABUPATEN '], '', $city->name ?? ''),
-                    'lat' => (float) ($city->meta['lat'] ?? 0),
-                    'lng' => (float) ($city->meta['long'] ?? 0),
+                    'lat' => (float) ($sale->customer->latitude ?? $city?->meta['lat'] ?? 0),
+                    'lng' => (float) ($sale->customer->longitude ?? $city?->meta['long'] ?? 0),
                     'total_amount' => 0,
                     'products' => [],
                 ];

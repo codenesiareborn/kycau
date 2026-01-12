@@ -37,7 +37,7 @@
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             attribution: '© OpenStreetMap contributors © CARTO',
             subdomains: 'abcd',
-            maxZoom: 18
+            maxZoom: 22
         }).addTo(customerMapInstance);
 
         // Create marker cluster group
@@ -133,6 +133,16 @@
                     </div>
                 `);
             
+            // Zoom and center on click
+            marker.on('click', (e) => {
+                customerMapInstance.setView(e.latlng, 18);
+            });
+
+            // Zoom and center on click
+            marker.on('click', (e) => {
+                customerMapInstance.setView(e.latlng, 18);
+            });
+
             // Add marker to cluster instead of directly to map
             markerCluster.addLayer(marker);
         });
