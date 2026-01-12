@@ -135,6 +135,12 @@ class UploadHistoryTable extends BaseWidget implements HasForms
         $filters = $this->pageFilters;
         $query = FileUpload::query()->latest();
 
+        // Apply automatic user filter for non-admin users
+        $user = auth()->user();
+        if ($user && !$user->hasAnyRole(['admin', 'super_admin'])) {
+            $query->where('user_id', $user->id);
+        }
+
         // Apply user filter (admin only)
         if (!empty($filters['user_id']) && auth()->user()?->hasAnyRole(['admin', 'super_admin'])) {
             $query->where('user_id', $filters['user_id']);

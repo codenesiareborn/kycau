@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Customers\Schemas;
 
+use Filament\Forms\Components\Placeholder;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -37,6 +39,33 @@ class CustomerForm
                     ->tel()
                     ->maxLength(50)
                     ->nullable(),
+                
+                // Current Location Information Section
+                Section::make('📍 Informasi Lokasi Saat Ini (Database)')
+                    ->description('Data kota dan alamat yang tersimpan di database')
+                    ->schema([
+                        Placeholder::make('current_city')
+                            ->label('Kota Saat Ini')
+                            ->content(function ($record) {
+                                if (!$record || !$record->city) {
+                                    return 'Belum ada kota yang disimpan';
+                                }
+                                return $record->city->name;
+                            })
+                            ->columnSpanFull(),
+                        Placeholder::make('current_address')
+                            ->label('Alamat Saat Ini')
+                            ->content(function ($record) {
+                                if (!$record || !$record->address) {
+                                    return 'Belum ada alamat yang disimpan';
+                                }
+                                return $record->address;
+                            })
+                            ->columnSpanFull(),
+                    ])
+                    ->visible(fn($record) => $record !== null)
+                    ->columns(1),
+                
                 TextInput::make('latitude')
                     ->label('Latitude')
                     ->hidden()

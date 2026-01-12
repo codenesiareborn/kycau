@@ -115,19 +115,34 @@
 
             const marker = L.marker([customer.lat, customer.lng], { icon: customIcon })
                 .bindPopup(`
-                    <div style="padding: 12px; min-width: 200px;">
+                    <div style="padding: 12px; min-width: 300px; max-width: 400px;">
                         <h4 style="margin: 0 0 8px 0; color: #134e4a; font-weight: 600;">${customer.name}</h4>
                         <div style="margin-bottom: 8px; font-size: 12px; color: #6b7280;">
                             <i class="fas fa-map-marker-alt"></i> ${customer.address || ''}, ${customer.city}
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
-                            <div>
-                                <div style="color: #6b7280;">Produk:</div>
-                                <div style="font-weight: 600; color: #1f2937;">${customer.products}</div>
-                            </div>
-                            <div>
-                                <div style="color: #6b7280;">Total:</div>
-                                <div style="font-weight: 600; color: #134e4a;">Rp ${customer.amount.toLocaleString('id-ID')}</div>
+                        <div style="margin-bottom: 12px; font-size: 12px;">
+                            <span style="color: #6b7280;">Total Transaksi:</span>
+                            <span style="font-weight: 600; color: #1f2937;">${customer.sales_count}x</span>
+                            <span style="margin-left: 10px; color: #6b7280;">Total Amount:</span>
+                            <span style="font-weight: 600; color: #134e4a;">Rp ${customer.amount.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div style="border-top: 1px solid #e5e7eb; padding-top: 8px;">
+                            <h5 style="margin: 0 0 8px 0; font-size: 13px; color: #374151; font-weight: 600;">Detail Transaksi:</h5>
+                            <div style="max-height: 200px; overflow-y: auto;">
+                                ${customer.sales_records.map(sale => `
+                                    <div style="margin-bottom: 8px; padding: 8px; background: #f9fafb; border-radius: 6px; font-size: 11px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                            <span style="font-weight: 600; color: #1f2937;">#${sale.sale_id}</span>
+                                            <span style="color: #134e4a; font-weight: 600;">Rp ${sale.amount.toLocaleString('id-ID')}</span>
+                                        </div>
+                                        <div style="color: #6b7280; margin-bottom: 4px;">
+                                            <i class="fas fa-calendar"></i> ${new Date(sale.date).toLocaleDateString('id-ID')}
+                                        </div>
+                                        <div style="color: #4b5563;">
+                                            <i class="fas fa-box"></i> ${sale.products}
+                                        </div>
+                                    </div>
+                                `).join('')}
                             </div>
                         </div>
                     </div>
