@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Laravolt\Indonesia\Facade as Indonesia;
+use Laravolt\Indonesia\Models\City;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
@@ -541,19 +541,9 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             return null;
         }
 
-        $results = Indonesia::search(Str::lower($cityName))->allCities();
+        $city = City::where('name', 'LIKE', '%' . $cityName . '%')->first();
 
-        if ($results === null) {
-            return null;
-        }
-
-        $first = collect($results)->first();
-
-        if (is_array($first)) {
-            return $first['id'] ?? null;
-        }
-
-        return $first->id ?? null;
+        return $city?->id;
     }
 
     private function findOrCreateCustomer(
