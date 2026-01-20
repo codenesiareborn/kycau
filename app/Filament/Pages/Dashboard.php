@@ -8,17 +8,18 @@ use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\ProductSalesChart;
 use App\Filament\Widgets\SalesChart;
 use App\Filament\Widgets\SalesDataTable;
+use App\Filament\Widgets\SubscriptionExpiredWidget;
 use App\Filament\Widgets\UploadHistoryTable;
 use App\Models\Product;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\ViewField;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Illuminate\Contracts\View\View;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
-use Filament\Support\Enums\Width;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\DB;
 
 class Dashboard extends BaseDashboard
@@ -40,6 +41,16 @@ class Dashboard extends BaseDashboard
 
     public function getWidgets(): array
     {
+        $user = auth()->user();
+        $isAdmin = $user?->hasAnyRole(['admin', 'super_admin']);
+        $hasActivePackage = $user?->hasActivePackage();
+
+        if (! $isAdmin && ! $hasActivePackage) {
+            return [
+                SubscriptionExpiredWidget::class,
+            ];
+        }
+
         return [
             DashboardOverview::class,
             SalesChart::class,
@@ -53,9 +64,13 @@ class Dashboard extends BaseDashboard
 
     public function filtersForm(Schema $schema): Schema
     {
+        $user = auth()->user();
+        $hasAccess = $user?->hasAnyRole(['admin', 'super_admin']) || $user?->hasActivePackage();
+
         return $schema
             ->components([
                 Section::make('Filter Data')
+                    ->visible($hasAccess)
                     ->schema([
                         DatePicker::make('date_from')
                             ->label('Tanggal Mulai')
@@ -97,7 +112,7 @@ class Dashboard extends BaseDashboard
                             ->placeholder('Semua User')
                             ->options(\App\Models\User::pluck('name', 'id'))
                             ->searchable()
-                            ->visible(fn() => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
+                            ->visible(fn () => auth()->user()?->hasAnyRole(['admin', 'super_admin']))
                             ->helperText('Filter data berdasarkan user'),
 
                         ViewField::make('clear_button')
@@ -133,15 +148,6 @@ class Dashboard extends BaseDashboard
 
     public static function canAccess(): bool
     {
-        $user = auth()->user();
-
-        // Admins always have access
-        if ($user?->hasAnyRole(['admin', 'super_admin'])) {
-            return true;
-        }
-
-        // Users must have an active package
-        return $user?->hasActivePackage() ?? false;
+        return true;
     }
 }
-

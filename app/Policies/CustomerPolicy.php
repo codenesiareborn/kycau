@@ -4,67 +4,79 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Customer;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class CustomerPolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+
+    public function before(User $user, string $ability): ?bool
     {
-        return $authUser->can('ViewAny:Customer');
+        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+            return null;
+        }
+
+        if (! $user->hasActivePackage()) {
+            return false;
+        }
+
+        return null;
     }
 
-    public function view(AuthUser $authUser, Customer $customer): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('View:Customer');
+        return $user->can('ViewAny:Customer');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function view(User $user, Customer $customer): bool
     {
-        return $authUser->can('Create:Customer');
+        return $user->can('View:Customer');
     }
 
-    public function update(AuthUser $authUser, Customer $customer): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Update:Customer');
+        return $user->can('Create:Customer');
     }
 
-    public function delete(AuthUser $authUser, Customer $customer): bool
+    public function update(User $user, Customer $customer): bool
     {
-        return $authUser->can('Delete:Customer');
+        return $user->can('Update:Customer');
     }
 
-    public function restore(AuthUser $authUser, Customer $customer): bool
+    public function delete(User $user, Customer $customer): bool
     {
-        return $authUser->can('Restore:Customer');
+        return $user->can('Delete:Customer');
     }
 
-    public function forceDelete(AuthUser $authUser, Customer $customer): bool
+    public function restore(User $user, Customer $customer): bool
     {
-        return $authUser->can('ForceDelete:Customer');
+        return $user->can('Restore:Customer');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDelete(User $user, Customer $customer): bool
     {
-        return $authUser->can('ForceDeleteAny:Customer');
+        return $user->can('ForceDelete:Customer');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:Customer');
+        return $user->can('ForceDeleteAny:Customer');
     }
 
-    public function replicate(AuthUser $authUser, Customer $customer): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('Replicate:Customer');
+        return $user->can('RestoreAny:Customer');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function replicate(User $user, Customer $customer): bool
     {
-        return $authUser->can('Reorder:Customer');
+        return $user->can('Replicate:Customer');
     }
 
+    public function reorder(User $user): bool
+    {
+        return $user->can('Reorder:Customer');
+    }
 }

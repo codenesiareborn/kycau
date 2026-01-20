@@ -4,67 +4,79 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Sale;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SalePolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+
+    public function before(User $user, string $ability): ?bool
     {
-        return $authUser->can('ViewAny:Sale');
+        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+            return null;
+        }
+
+        if (! $user->hasActivePackage()) {
+            return false;
+        }
+
+        return null;
     }
 
-    public function view(AuthUser $authUser, Sale $sale): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('View:Sale');
+        return $user->can('ViewAny:Sale');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function view(User $user, Sale $sale): bool
     {
-        return $authUser->can('Create:Sale');
+        return $user->can('View:Sale');
     }
 
-    public function update(AuthUser $authUser, Sale $sale): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Update:Sale');
+        return $user->can('Create:Sale');
     }
 
-    public function delete(AuthUser $authUser, Sale $sale): bool
+    public function update(User $user, Sale $sale): bool
     {
-        return $authUser->can('Delete:Sale');
+        return $user->can('Update:Sale');
     }
 
-    public function restore(AuthUser $authUser, Sale $sale): bool
+    public function delete(User $user, Sale $sale): bool
     {
-        return $authUser->can('Restore:Sale');
+        return $user->can('Delete:Sale');
     }
 
-    public function forceDelete(AuthUser $authUser, Sale $sale): bool
+    public function restore(User $user, Sale $sale): bool
     {
-        return $authUser->can('ForceDelete:Sale');
+        return $user->can('Restore:Sale');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDelete(User $user, Sale $sale): bool
     {
-        return $authUser->can('ForceDeleteAny:Sale');
+        return $user->can('ForceDelete:Sale');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:Sale');
+        return $user->can('ForceDeleteAny:Sale');
     }
 
-    public function replicate(AuthUser $authUser, Sale $sale): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('Replicate:Sale');
+        return $user->can('RestoreAny:Sale');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function replicate(User $user, Sale $sale): bool
     {
-        return $authUser->can('Reorder:Sale');
+        return $user->can('Replicate:Sale');
     }
 
+    public function reorder(User $user): bool
+    {
+        return $user->can('Reorder:Sale');
+    }
 }

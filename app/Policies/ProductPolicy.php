@@ -4,67 +4,79 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use Illuminate\Foundation\Auth\User as AuthUser;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ProductPolicy
 {
     use HandlesAuthorization;
-    
-    public function viewAny(AuthUser $authUser): bool
+
+    public function before(User $user, string $ability): ?bool
     {
-        return $authUser->can('ViewAny:Product');
+        if ($user->hasAnyRole(['super_admin', 'admin'])) {
+            return null;
+        }
+
+        if (! $user->hasActivePackage()) {
+            return false;
+        }
+
+        return null;
     }
 
-    public function view(AuthUser $authUser, Product $product): bool
+    public function viewAny(User $user): bool
     {
-        return $authUser->can('View:Product');
+        return $user->can('ViewAny:Product');
     }
 
-    public function create(AuthUser $authUser): bool
+    public function view(User $user, Product $product): bool
     {
-        return $authUser->can('Create:Product');
+        return $user->can('View:Product');
     }
 
-    public function update(AuthUser $authUser, Product $product): bool
+    public function create(User $user): bool
     {
-        return $authUser->can('Update:Product');
+        return $user->can('Create:Product');
     }
 
-    public function delete(AuthUser $authUser, Product $product): bool
+    public function update(User $user, Product $product): bool
     {
-        return $authUser->can('Delete:Product');
+        return $user->can('Update:Product');
     }
 
-    public function restore(AuthUser $authUser, Product $product): bool
+    public function delete(User $user, Product $product): bool
     {
-        return $authUser->can('Restore:Product');
+        return $user->can('Delete:Product');
     }
 
-    public function forceDelete(AuthUser $authUser, Product $product): bool
+    public function restore(User $user, Product $product): bool
     {
-        return $authUser->can('ForceDelete:Product');
+        return $user->can('Restore:Product');
     }
 
-    public function forceDeleteAny(AuthUser $authUser): bool
+    public function forceDelete(User $user, Product $product): bool
     {
-        return $authUser->can('ForceDeleteAny:Product');
+        return $user->can('ForceDelete:Product');
     }
 
-    public function restoreAny(AuthUser $authUser): bool
+    public function forceDeleteAny(User $user): bool
     {
-        return $authUser->can('RestoreAny:Product');
+        return $user->can('ForceDeleteAny:Product');
     }
 
-    public function replicate(AuthUser $authUser, Product $product): bool
+    public function restoreAny(User $user): bool
     {
-        return $authUser->can('Replicate:Product');
+        return $user->can('RestoreAny:Product');
     }
 
-    public function reorder(AuthUser $authUser): bool
+    public function replicate(User $user, Product $product): bool
     {
-        return $authUser->can('Reorder:Product');
+        return $user->can('Replicate:Product');
     }
 
+    public function reorder(User $user): bool
+    {
+        return $user->can('Reorder:Product');
+    }
 }
