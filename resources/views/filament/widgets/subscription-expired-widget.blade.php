@@ -14,6 +14,17 @@
                 Silakan hubungi admin untuk mengaktifkan atau memperpanjang paket langganan Anda agar dapat melihat data dashboard.
             </p>
 
+            <div class="mt-6">
+                <x-filament::button
+                    tag="a"
+                    href="{{ \App\Filament\Pages\SubscriptionRenewal::getUrl() }}"
+                    size="lg"
+                    color="primary"
+                >
+                    Perpanjang Paket Sekarang
+                </x-filament::button>
+            </div>
+
             @if(auth()->user()->package)
                 <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg w-full max-w-md">
                     <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Status Paket Anda</div>

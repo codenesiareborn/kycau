@@ -1,23 +1,23 @@
 <?php
 
+use App\Http\Controllers\Auth\CustomAdminLoginController;
+use App\Http\Controllers\Auth\CustomAdminRegisterController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 use Livewire\Volt\Volt;
-use App\Http\Controllers\Auth\CustomAdminLoginController;
-use App\Http\Controllers\Auth\CustomAdminRegisterController;
 
-Route::get('/test-map-data', function() {
+Route::get('/test-map-data', function () {
     echo "=== ANALISIS DATA PENJUALAN VS PIN PETA ===\n\n";
-    
+
     // Total sales records
     $totalSales = \DB::table('sales')->count();
     echo "1. Total sales records: {$totalSales}\n";
-    
+
     // Unique customers with sales
     $uniqueCustomersWithSales = \DB::table('sales')->distinct('customer_id')->count('customer_id');
     echo "2. Unique customers with sales: {$uniqueCustomersWithSales}\n";
-    
+
     // Customers with city_id
     $customersWithCity = \DB::table('sales')
         ->join('customers', 'sales.customer_id', '=', 'customers.id')
@@ -25,7 +25,7 @@ Route::get('/test-map-data', function() {
         ->distinct('sales.customer_id')
         ->count('sales.customer_id');
     echo "3. Customers with city_id assigned: {$customersWithCity}\n";
-    
+
     // Customers with valid coordinates (using join with cities)
     $customersWithCoords = \DB::table('sales')
         ->join('customers', 'sales.customer_id', '=', 'customers.id')
@@ -34,15 +34,15 @@ Route::get('/test-map-data', function() {
         ->distinct('sales.customer_id')
         ->count('sales.customer_id');
     echo "4. Customers with valid city coordinates: {$customersWithCoords}\n";
-    
+
     // Current map data count
     $mapData = (new \App\Filament\Widgets\CustomerMap)->getCustomerMapData();
-    echo "5. Actual map pins displayed: " . count($mapData) . "\n";
-    
+    echo '5. Actual map pins displayed: '.count($mapData)."\n";
+
     echo "\n=== ANALISIS PERBEDAAN ===\n";
-    echo "Sales per customer average: " . round($totalSales / $uniqueCustomersWithSales, 2) . "\n";
-    echo "Customers excluded due to missing city_id: " . ($uniqueCustomersWithSales - $customersWithCity) . "\n";
-    
+    echo 'Sales per customer average: '.round($totalSales / $uniqueCustomersWithSales, 2)."\n";
+    echo 'Customers excluded due to missing city_id: '.($uniqueCustomersWithSales - $customersWithCity)."\n";
+
     // Sample customers without city
     $withoutCity = \DB::table('sales')
         ->join('customers', 'sales.customer_id', '=', 'customers.id')
@@ -50,9 +50,9 @@ Route::get('/test-map-data', function() {
         ->distinct('sales.customer_id')
         ->limit(5)
         ->pluck('sales.customer_id');
-    
+
     if ($withoutCity->count() > 0) {
-        echo "\nSample customers without city_id: " . $withoutCity->implode(', ') . "\n";
+        echo "\nSample customers without city_id: ".$withoutCity->implode(', ')."\n";
     }
 });
 
@@ -110,15 +110,16 @@ Route::middleware(['auth'])->group(function () {
 // API route for city search (used by map component)
 Route::get('/api/cities/search', function (Request $request) {
     $query = $request->get('q');
-    
+
     // Debug logging
-    \Log::info("City search API called with query: " . $query);
-    
+    \Log::info('City search API called with query: '.$query);
+
     if (empty($query)) {
-        \Log::info("Empty query, returning null");
+        \Log::info('Empty query, returning null');
+
         return response()->json(null);
     }
-    
+
     // English to Indonesian city name translations
     $translations = [
         'Sleman Regency' => 'Sleman',
@@ -144,41 +145,41 @@ Route::get('/api/cities/search', function (Request $request) {
         'Special Region of Yogyakarta' => 'YOGYAKARTA',
         'Sleman Regency' => 'SLEMAN',
         'Bantul Regency' => 'BANTUL',
-        'Kulon Progo Regency' => 'KULON PROGO'
+        'Kulon Progo Regency' => 'KULON PROGO',
     ];
-    
+
     // Apply translation if found
     $translatedQuery = $translations[$query] ?? $query;
-    
+
     if ($translatedQuery !== $query) {
         \Log::info("Query translated from '{$query}' to '{$translatedQuery}'");
     }
-    
+
     // Try exact match first with translated query
     $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$translatedQuery}%")
         ->orWhere('name', 'LIKE', "%KOTA {$translatedQuery}%")
         ->orWhere('name', 'LIKE', "%KABUPATEN {$translatedQuery}%")
         ->first();
-    
+
     // If not found, try with original query as fallback
-    if (!$city && $translatedQuery !== $query) {
+    if (! $city && $translatedQuery !== $query) {
         \Log::info("No match with translated query, trying original: '{$query}'");
         $city = \Laravolt\Indonesia\Models\City::where('name', 'LIKE', "%{$query}%")
             ->orWhere('name', 'LIKE', "%KOTA {$query}%")
             ->orWhere('name', 'LIKE', "%KABUPATEN {$query}%")
             ->first();
     }
-    
+
     if ($city) {
-        \Log::info("City found: " . $city->name . " (ID: " . $city->id . ")");
+        \Log::info('City found: '.$city->name.' (ID: '.$city->id.')');
     } else {
         \Log::info("No city found for query: '{$query}'");
     }
-    
+
     return response()->json($city ? [
         'id' => $city->id,
         'name' => $city->name,
-        'province_name' => $city->province->name
+        'province_name' => $city->province->name,
     ] : null);
 });
 

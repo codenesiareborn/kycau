@@ -1,5 +1,6 @@
 <?php
 
+use App\Filament\Pages\SubscriptionRenewal;
 use App\Filament\Widgets\DashboardOverview;
 use App\Filament\Widgets\SubscriptionExpiredWidget;
 use App\Models\Package;
@@ -59,7 +60,45 @@ test('user without package sees subscription expired widget with dates', functio
     // Let's try testing the widget in isolation to verify it renders the dates correctly.
     Livewire::test(SubscriptionExpiredWidget::class)
         ->assertSee($user->created_at->isoFormat('D MMMM Y'))
-        ->assertSee($user->package_expires_at->isoFormat('D MMMM Y'));
+        ->assertSee($user->package_expires_at->isoFormat('D MMMM Y'))
+        ->assertSee('Perpanjang Paket Sekarang');
+});
+
+test('user can access subscription renewal page', function () {
+    $user = User::factory()->create();
+    $user->assignRole('user');
+
+    // Create some packages to display
+    Package::factory()->count(3)->create(['is_active' => true, 'is_trial' => false]);
+
+    $this->actingAs($user)
+        ->get(SubscriptionRenewal::getUrl())
+        ->assertSuccessful()
+        ->assertSee('Perpanjang Langganan');
+});
+
+test('user can auto renew trial package', function () {
+    $user = User::factory()->create();
+    $user->assignRole('user');
+
+    $trialPackage = Package::factory()->create([
+        'is_active' => true,
+        'is_trial' => true,
+        'duration_days' => 14,
+        'name' => 'Trial',
+    ]);
+
+    // Mount the component
+    Livewire::actingAs($user)
+        ->test(SubscriptionRenewal::class)
+        ->call('processRenewal', $trialPackage->id)
+        ->assertRedirect('/admin')
+        ->assertNotified('Paket Trial Berhasil Diaktifkan');
+
+    // Verify user record updated
+    $user->refresh();
+    expect($user->package_id)->toBe($trialPackage->id)
+        ->and($user->package_expires_at->diffInDays(now()->addDays(14)))->toBeLessThan(1);
 });
 
 test('user with active package sees normal dashboard', function () {
