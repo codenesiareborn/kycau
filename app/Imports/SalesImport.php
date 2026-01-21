@@ -470,7 +470,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             'phone' => ['no-hp', 'hp', 'telepon', 'phone'],
             'email' => ['email'],
             'address' => ['alamat', 'address'],
-            'city' => ['kota', 'kota-kabupaten', 'city'],
+            'city' => ['kota', 'kota-kabupaten', 'kab-kota', 'kabkota', 'kabupaten-kota', 'city'],
             'province' => ['provinsi', 'province'],
             'product' => ['produk', 'product'],
             'quantity' => ['qty', 'jmlh', 'jumlah', 'quantity'],
@@ -579,19 +579,29 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
         ?string $address,
         ?int $cityId
     ): Customer {
-        $customer = null;
-
+        // Key adalah kombinasi nama + phone + email (phone dan email bisa kosong)
+        // Ini memastikan customer dengan nama sama tapi phone/email berbeda tidak di-merge
+        $query = Customer::where('name', $name);
+        
+        // Match phone (termasuk jika keduanya null/empty)
+        if ($phone) {
+            $query->where('phone', $phone);
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('phone')->orWhere('phone', '');
+            });
+        }
+        
+        // Match email (termasuk jika keduanya null/empty)
         if ($email) {
-            $customer = Customer::where('email', $email)->first();
+            $query->where('email', $email);
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('email')->orWhere('email', '');
+            });
         }
-
-        if (!$customer && $phone) {
-            $customer = Customer::where('phone', $phone)->first();
-        }
-
-        if (!$customer) {
-            $customer = Customer::where('name', $name)->first();
-        }
+        
+        $customer = $query->first();
 
         if (!$customer) {
             $customer = Customer::create([
@@ -603,6 +613,8 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                 'city_id' => $cityId,
             ]);
 
+            \Log::info("Created new customer: {$name} | Phone: " . ($phone ?: 'empty') . " | Email: " . ($email ?: 'empty'));
+
             return $customer;
         }
 
@@ -613,23 +625,14 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             $needsSave = true;
         }
 
-        if ($customer->phone === null && $phone) {
-            $customer->phone = $phone;
-            $needsSave = true;
-        }
-
         if ($customer->city_id === null && $cityId) {
             $customer->city_id = $cityId;
             $needsSave = true;
         }
 
-        if ($customer->email === null && $email) {
-            $customer->email = $email;
-            $needsSave = true;
-        }
-
         if ($needsSave) {
             $customer->save();
+            \Log::info("Updated existing customer: {$name} | Added city_id: {$cityId}");
         }
 
         return $customer;
