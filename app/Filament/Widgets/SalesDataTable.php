@@ -20,15 +20,12 @@ class SalesDataTable extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    public function getHeading(): string
-    {
-        $count = $this->getTableQuery()->count();
-        return 'Data Penjualan (' . number_format($count) . ' data)';
-    }
-
     public function table(Table $table): Table
     {
+        $count = $this->getTableQuery()->count();
+
         return $table
+            ->heading('Data Penjualan (' . number_format($count) . ' data)')
             ->query($this->getTableQuery())
             ->columns([
                 TextColumn::make('month')
