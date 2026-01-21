@@ -151,6 +151,8 @@ class UploadHistoryTable extends BaseWidget implements HasForms
 
     protected function handleFileUpload($uploadedFile, int $year): void
     {
+        $fileUpload = null;
+        
         try {
             // Validate file input
             if (!$uploadedFile instanceof TemporaryUploadedFile) {
@@ -186,40 +188,71 @@ class UploadHistoryTable extends BaseWidget implements HasForms
             ]);
 
             // Process the file using SalesImport
-            $this->processFileImport($uploadedFile->getRealPath(), $fileUpload, $year);
+            $result = $this->processFileImport($uploadedFile->getRealPath(), $fileUpload, $year);
 
-            Notification::make()
-                ->title('Import berhasil')
-                ->body("Data penjualan tahun {$year} berhasil diimpor.")
-                ->success()
-                ->send();
+            if ($result['success']) {
+                Notification::make()
+                    ->title('Import berhasil')
+                    ->body("Berhasil mengimpor {$result['sales_count']} data penjualan tahun {$year}.")
+                    ->success()
+                    ->send();
 
-            // Refresh the page to update widgets
-            $this->dispatch('refresh');
+                // Reload halaman agar maps dan widget lain ter-refresh
+                $this->redirect(request()->header('Referer', '/'), navigate: true);
+            }
 
         } catch (\Exception $e) {
+            // Rollback: delete any data created during this import
+            if ($fileUpload) {
+                $this->rollbackImport($fileUpload);
+            }
+            
             Notification::make()
                 ->title('Import gagal')
-                ->body('Terjadi kesalahan ketika memproses file: ' . $e->getMessage())
+                ->body($e->getMessage())
                 ->danger()
+                ->persistent()
                 ->send();
         }
     }
 
-    protected function processFileImport(string $filePath, FileUpload $fileUpload, int $year): void
+    protected function processFileImport(string $filePath, FileUpload $fileUpload, int $year): array
     {
-        try {
-            $import = new \App\Imports\SalesImport($year);
+        $import = new \App\Imports\SalesImport($year);
 
+        try {
             // Import using Excel facade directly from file path
             \Maatwebsite\Excel\Facades\Excel::import($import, $filePath);
+
+            // Check if import has errors
+            if ($import->hasErrors()) {
+                $errors = $import->getErrors();
+                $errorMessage = "Import dibatalkan karena ada error:\n" . implode("\n", array_slice($errors, 0, 5));
+                if (count($errors) > 5) {
+                    $errorMessage .= "\n... dan " . (count($errors) - 5) . " error lainnya.";
+                }
+                
+                $fileUpload->update([
+                    'status' => 'failed',
+                    'error_message' => $errorMessage,
+                    'processed_at' => now(),
+                ]);
+                
+                throw new \Exception($errorMessage);
+            }
 
             // Update status to completed
             $fileUpload->update([
                 'status' => 'completed',
-                'records_processed' => $this->countProcessedRecords(),
+                'records_processed' => $import->getCreatedSalesCount(),
                 'processed_at' => now(),
             ]);
+
+            return [
+                'success' => true,
+                'sales_count' => $import->getCreatedSalesCount(),
+                'processed_count' => $import->getProcessedCount(),
+            ];
 
         } catch (\Exception $e) {
             $fileUpload->update([
@@ -228,13 +261,23 @@ class UploadHistoryTable extends BaseWidget implements HasForms
                 'processed_at' => now(),
             ]);
 
-            throw $e; // Re-throw to be caught by handleFileUpload
+            throw $e;
         }
     }
 
-    protected function countProcessedRecords(): int
+    protected function rollbackImport(FileUpload $fileUpload): void
     {
-        // Count recent sales records as approximation
-        return \App\Models\Sale::where('created_at', '>=', now()->subMinutes(5))->count();
+        // Delete sales created after this upload started
+        $salesCreatedAfter = \App\Models\Sale::where('created_at', '>=', $fileUpload->created_at)
+            ->where('user_id', auth()->id())
+            ->get();
+
+        foreach ($salesCreatedAfter as $sale) {
+            // Delete sale items first
+            $sale->items()->delete();
+            $sale->delete();
+        }
+
+        \Log::info("Rollback: Deleted " . $salesCreatedAfter->count() . " sales created after failed import.");
     }
 }

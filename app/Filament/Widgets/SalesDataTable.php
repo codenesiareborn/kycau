@@ -20,7 +20,11 @@ class SalesDataTable extends BaseWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $heading = 'Data Penjualan';
+    public function getHeading(): string
+    {
+        $count = $this->getTableQuery()->count();
+        return 'Data Penjualan (' . number_format($count) . ' data)';
+    }
 
     public function table(Table $table): Table
     {

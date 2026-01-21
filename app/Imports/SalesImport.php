@@ -30,9 +30,43 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
     private ?int $userId = null;
 
+    private int $processedCount = 0;
+
+    private int $createdSalesCount = 0;
+
+    /** @var array<string> */
+    private array $errors = [];
+
+    private bool $headerFound = false;
+
     public function __construct(private readonly int $year, ?int $userId = null)
     {
         $this->userId = $userId ?? auth()->id();
+    }
+
+    public function getProcessedCount(): int
+    {
+        return $this->processedCount;
+    }
+
+    public function getCreatedSalesCount(): int
+    {
+        return $this->createdSalesCount;
+    }
+
+    public function getErrors(): array
+    {
+        return $this->errors;
+    }
+
+    public function hasErrors(): bool
+    {
+        return count($this->errors) > 0;
+    }
+
+    public function isHeaderFound(): bool
+    {
+        return $this->headerFound;
     }
 
     public function collection(Collection $rows): void
@@ -52,12 +86,25 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
             if ($this->isHeaderRow($row)) {
                 $this->resolveColumnMap($row);
+                $this->headerFound = true;
                 \Log::info("Headers detected. Column map: " . json_encode($this->columnMap));
+                
+                // Validate required headers
+                $missingHeaders = $this->validateRequiredHeaders();
+                if (!empty($missingHeaders)) {
+                    $this->errors[] = "Header tidak lengkap. Kolom yang tidak ditemukan: " . implode(', ', $missingHeaders);
+                    throw new \Exception("Header tidak lengkap: " . implode(', ', $missingHeaders));
+                }
                 continue;
             }
 
             if ($this->columnMap === []) {
                 $skippedRows++;
+                // If we've processed many rows without finding headers, throw error
+                if ($index > 10 && !$this->headerFound) {
+                    $this->errors[] = "Header tidak ditemukan dalam 10 baris pertama. Pastikan file memiliki header: BLN, TGL, NO, NAMA, dst.";
+                    throw new \Exception("Header tidak ditemukan. Pastikan baris pertama berisi: BLN, TGL, NO, NAMA, NO. HP, EMAIL, ALAMAT, KOTA, PRODUK, QTY, TOTAL PEMBELIAN");
+                }
                 \Log::info("Skipping row {$index}: No column map resolved. First cell: " . $this->stringValue($row->get(0)));
                 continue;
             }
@@ -90,6 +137,20 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             $saleDate = $isNewSale ? $this->buildSaleDate($monthValue, $dayValue) : null;
             $saleNumber = $isNewSale ? $this->buildSaleNumber($monthValue, $rawNumber) : null;
 
+            // Validate row data
+            $rowErrors = $this->validateRowData($index, $customerName, $monthValue, $dayValue, $productName);
+            if (!empty($rowErrors)) {
+                foreach ($rowErrors as $error) {
+                    $this->errors[] = $error;
+                }
+                // Stop import if too many errors
+                if (count($this->errors) >= 10) {
+                    throw new \Exception("Terlalu banyak error (" . count($this->errors) . "). Import dibatalkan. Perbaiki data Excel Anda.");
+                }
+                $skippedRows++;
+                continue;
+            }
+
             try {
                 DB::transaction(function () use ($isNewSale, $monthValue, $saleDate, $saleNumber, $customerName, $customerEmail, $customerPhone, $customerAddress, $customerCityName, $productNames, $quantity, $lineTotal, $index): void {
                     if ($isNewSale) {
@@ -104,6 +165,7 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                             $customerAddress,
                             $customerCityName
                         );
+                        $this->createdSalesCount++;
                     }
 
                     if (!$this->currentSale || $productNames === []) {
@@ -113,13 +175,13 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
 
                     $perItemTotal = $this->allocateLineTotals($lineTotal, count($productNames));
 
-                    foreach ($productNames as $index => $name) {
+                    foreach ($productNames as $idx => $name) {
                         $product = Product::firstOrCreate(
                             ['name' => $name],
                             ['user_id' => $this->userId, 'description' => null, 'price' => null]
                         );
 
-                        $lineTotalForItem = $this->determineLineTotal($perItemTotal[$index] ?? 0.0);
+                        $lineTotalForItem = $this->determineLineTotal($perItemTotal[$idx] ?? 0.0);
 
                         SaleItem::create([
                             'sale_id' => $this->currentSale->id,
@@ -133,9 +195,16 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
                 });
                 
                 $processedRows++;
+                $this->processedCount++;
             } catch (\Exception $e) {
                 \Log::error("Error processing row {$index}: " . $e->getMessage());
+                $this->errors[] = "Baris " . ($index + 1) . ": " . $e->getMessage();
                 $skippedRows++;
+                
+                // Stop if too many errors
+                if (count($this->errors) >= 10) {
+                    throw new \Exception("Terlalu banyak error. Import dibatalkan.");
+                }
             }
         }
         
@@ -476,6 +545,55 @@ class SalesImport implements ToCollection, WithBatchInserts, WithChunkReading
             'quantity' => ['qty', 'jmlh', 'jumlah', 'quantity'],
             'total' => ['total-pembelian', 'total', 'grand-total'],
         ];
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function validateRequiredHeaders(): array
+    {
+        $requiredFields = ['month', 'day', 'name', 'product'];
+        $missing = [];
+
+        foreach ($requiredFields as $field) {
+            if (!isset($this->columnMap[$field])) {
+                $synonyms = $this->headerSynonyms()[$field] ?? [];
+                $missing[] = strtoupper($synonyms[0] ?? $field);
+            }
+        }
+
+        return $missing;
+    }
+
+    /**
+     * @return array<string>
+     */
+    private function validateRowData(int $rowIndex, string $customerName, string $monthValue, mixed $dayValue, string $productName): array
+    {
+        $errors = [];
+        $rowNum = $rowIndex + 1;
+
+        // Skip validation for continuation rows (no customer name means it's a product continuation)
+        if ($customerName === '' && $productName !== '') {
+            return [];
+        }
+
+        // If this looks like a data row (has customer name), validate required fields
+        if ($customerName !== '') {
+            if ($monthValue === '') {
+                $errors[] = "Baris {$rowNum}: Kolom BLN (bulan) kosong untuk customer '{$customerName}'";
+            }
+
+            if ($dayValue === null || $dayValue === '') {
+                $errors[] = "Baris {$rowNum}: Kolom TGL (tanggal) kosong untuk customer '{$customerName}'";
+            }
+
+            if ($productName === '') {
+                $errors[] = "Baris {$rowNum}: Kolom PRODUK kosong untuk customer '{$customerName}'";
+            }
+        }
+
+        return $errors;
     }
 
     private function extractNumericString(mixed $value): ?string
